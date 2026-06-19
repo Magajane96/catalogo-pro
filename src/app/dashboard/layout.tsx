@@ -4,5 +4,6 @@ import { createClient } from "@/lib/supabase/server";
 export default async function Layout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
   const { data: store } = supabase ? await supabase.from("stores").select("slug").maybeSingle() : { data: null };
-  return <DashboardShell storeSlug={store?.slug}>{children}</DashboardShell>;
+  const { data: profile } = supabase ? await supabase.from("profiles").select("role").maybeSingle() : { data: null };
+  return <DashboardShell storeSlug={store?.slug} isAdmin={profile?.role === "admin"}>{children}</DashboardShell>;
 }
