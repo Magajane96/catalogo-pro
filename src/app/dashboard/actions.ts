@@ -39,11 +39,11 @@ export async function updateStore(formData: FormData) {
     primary_color: String(formData.get("primary_color") || "#16a263"),
     secondary_color: String(formData.get("secondary_color") || "#14261d"),
     font_family: String(formData.get("font_family") || "Manrope"),
-    seo_title: String(formData.get("seo_title") || "").trim() || null,
-    seo_description: String(formData.get("seo_description") || "").trim() || null,
     published: formData.get("published") === "on",
     updated_at: new Date().toISOString(),
   };
+  if (formData.has("seo_title")) payload.seo_title = String(formData.get("seo_title") || "").trim() || null;
+  if (formData.has("seo_description")) payload.seo_description = String(formData.get("seo_description") || "").trim() || null;
   if (logoUrl) payload.logo_url = logoUrl;
   if (bannerUrl) payload.banner_url = bannerUrl;
   const { error } = await supabase.from("stores").update(payload).eq("id", id);
