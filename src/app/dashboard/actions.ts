@@ -155,18 +155,25 @@ export async function createCategory(formData: FormData) {
   const supabase = await createClient(); if (!supabase) throw new Error("Configure o Supabase primeiro.");
   const { data: store } = await supabase.from("stores").select("id").single(); if (!store) throw new Error("Loja nao encontrada.");
   const { error } = await supabase.from("categories").insert({ store_id: store.id, name: String(formData.get("name")), icon: String(formData.get("icon") || "Tag"), color: String(formData.get("color") || "#16a263") });
-  if (error) throw new Error(error.message); revalidatePath("/dashboard/categorias");
+  if (error) throw new Error(error.message); await revalidateCategoryPaths(supabase);
 }
 
 export async function updateCategory(formData: FormData) {
   const supabase = await createClient(); if (!supabase) return;
   await supabase.from("categories").update({ name: String(formData.get("name")), icon: String(formData.get("icon") || "Tag"), color: String(formData.get("color") || "#16a263"), active: formData.get("active") === "on" }).eq("id", String(formData.get("id")));
-  revalidatePath("/dashboard/categorias");
+  await revalidateCategoryPaths(supabase);
 }
 
 export async function deleteCategory(formData: FormData) {
   const supabase = await createClient(); if (!supabase) return;
-  await supabase.from("categories").delete().eq("id", String(formData.get("id"))); revalidatePath("/dashboard/categorias");
+  await supabase.from("categories").delete().eq("id", String(formData.get("id"))); await revalidateCategoryPaths(supabase);
+}
+
+async function revalidateCategoryPaths(supabase: NonNullable<Awaited<ReturnType<typeof createClient>>>) {
+  const { data: store } = await supabase.from("stores").select("slug").maybeSingle();
+  revalidatePath("/dashboard");
+  revalidatePath("/dashboard/categorias");
+  if (store?.slug) revalidatePath(`/loja/${store.slug}`);
 }
 
 export async function updateOrderStatus(formData: FormData) {
