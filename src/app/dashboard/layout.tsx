@@ -1,0 +1,8 @@
+import { DashboardShell } from "@/components/dashboard-shell";
+import { createClient } from "@/lib/supabase/server";
+
+export default async function Layout({ children }: { children: React.ReactNode }) {
+  const supabase = await createClient();
+  const { data: store } = supabase ? await supabase.from("stores").select("slug").maybeSingle() : { data: null };
+  return <DashboardShell storeSlug={store?.slug}>{children}</DashboardShell>;
+}
