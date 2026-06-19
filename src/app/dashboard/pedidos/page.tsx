@@ -1,4 +1,4 @@
-import { CheckCircle2, Clock, MessageCircle, Search, ShoppingBag } from "lucide-react";
+import { CheckCircle2, Clock, MessageCircle, PackageCheck, Search, ShoppingBag } from "lucide-react";
 import { updateOrderStatus } from "@/app/dashboard/actions";
 import { createClient } from "@/lib/supabase/server";
 import { formatCurrency } from "@/lib/utils";
@@ -19,7 +19,7 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
   const supabase = await createClient();
   let query = supabase
     ?.from("orders")
-    .select("id,order_number,status,total,customer_name,customer_phone,created_at,whatsapp_sent_at,order_items(id,product_name,variant_name,quantity,unit_price)")
+    .select("id,order_number,status,total,customer_name,customer_phone,created_at,whatsapp_sent_at,stock_restored_at,order_items(id,product_name,variant_name,quantity,unit_price)")
     .order("created_at", { ascending: false });
   if (query && selectedStatus !== "all") query = query.eq("status", selectedStatus);
   if (query && search) {
@@ -73,9 +73,11 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
               <span className={`rounded-full px-3 py-1 text-xs font-bold ${status.className}`}>{status.label}</span>
               <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-500"><Clock size={13} />{formatDateTime(order.created_at)}</span>
               {order.whatsapp_sent_at ? <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700"><CheckCircle2 size={13} />WhatsApp enviado</span> : <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-3 py-1 text-xs font-bold text-amber-700"><MessageCircle size={13} />Aguardando WhatsApp</span>}
+              {order.stock_restored_at && <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700"><PackageCheck size={13} />Estoque restaurado</span>}
             </div>
             <p className="mt-1 text-sm text-slate-500">{order.customer_name} - {order.customer_phone}</p>
             {order.whatsapp_sent_at && <p className="mt-1 text-xs font-bold text-slate-400">Enviado em {formatDateTime(order.whatsapp_sent_at)}</p>}
+            {order.stock_restored_at && <p className="mt-1 text-xs font-bold text-slate-400">Estoque restaurado em {formatDateTime(order.stock_restored_at)}</p>}
           </div>
           <form action={updateOrderStatus} className="flex items-center gap-2">
             <input type="hidden" name="id" value={order.id} />

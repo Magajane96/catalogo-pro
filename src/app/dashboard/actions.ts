@@ -180,12 +180,11 @@ export async function updateOrderStatus(formData: FormData) {
   const supabase = await createClient(); if (!supabase) return;
   const id = String(formData.get("id"));
   const status = String(formData.get("status"));
-  const { data: order } = await supabase.from("orders").update({ status, updated_at: new Date().toISOString() }).eq("id", id).select("id,store_id,order_number").single();
-  if (order) {
-    await supabase.from("activities").insert({ store_id: order.store_id, type: "order_status_updated", title: "Status do pedido atualizado", metadata: { order_id: order.id, order_number: order.order_number, status } });
-  }
+  const { error } = await supabase.rpc("update_order_status", { p_order_id: id, p_status: status });
+  if (error) throw new Error(error.message);
   revalidatePath("/dashboard/pedidos");
   revalidatePath("/dashboard");
+  revalidatePath("/dashboard/produtos");
 }
 
 export async function deleteProduct(formData: FormData) {
