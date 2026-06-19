@@ -29,6 +29,7 @@ export function ProductBuyBox({ storeId, whatsapp, color, product, options }: { 
     setLoading(true);
     const form = new FormData(event.currentTarget);
     const selectedOptions = options.map(option => `${option.name}: ${form.get(`option_${option.id}`) || "Nao informado"}`);
+    const variantName = selectedOptions.length ? selectedOptions.join(" | ") : null;
     try {
       const response = await fetch("/api/orders", {
         method: "POST",
@@ -36,7 +37,7 @@ export function ProductBuyBox({ storeId, whatsapp, color, product, options }: { 
         body: JSON.stringify({
           storeId,
           customer: { name: form.get("name"), phone: form.get("phone"), email: form.get("email") },
-          items: [{ product_id: product.id, quantity }],
+          items: [{ product_id: product.id, quantity, variant_name: variantName }],
         }),
       });
       const result = await response.json();
