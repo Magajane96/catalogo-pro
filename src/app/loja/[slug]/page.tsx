@@ -16,7 +16,7 @@ export default async function StorePage({params}:{params:Promise<{slug:string}>}
   const {slug}=await params; const supabase=await createClient(); if(!supabase)notFound();
   const {data:store}=await supabase.from("stores").select("id,name,description,whatsapp,primary_color,secondary_color,font_family,logo_url,banner_url,category").eq("slug",slug).eq("published",true).maybeSingle(); if(!store)notFound();
   const [{data:products},{data:categories}]=await Promise.all([
-    supabase.from("products").select("id,name,slug,price,promotional_price,category_id,product_images(url,is_primary)").eq("store_id",store.id).eq("active",true).order("created_at",{ascending:false}),
+    supabase.from("products").select("id,name,slug,price,promotional_price,stock,category_id,product_images(url,is_primary)").eq("store_id",store.id).eq("active",true).order("created_at",{ascending:false}),
     supabase.from("categories").select("id,name,color").eq("store_id",store.id).eq("active",true).order("position")
   ]);
   return <main className="min-h-screen bg-[#f8f8f6]" style={{fontFamily:store.font_family}}>

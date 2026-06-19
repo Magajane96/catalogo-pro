@@ -10,6 +10,7 @@ type Product = {
   name: string;
   price: number | string;
   promotional_price: number | string | null;
+  stock: number;
 };
 
 type Option = {
@@ -22,6 +23,7 @@ export function ProductBuyBox({ storeId, whatsapp, color, product, options }: { 
   const [quantity, setQuantity] = useState(1);
   const [loading, setLoading] = useState(false);
   const unitPrice = Number(product.promotional_price || product.price);
+  const availableStock = Math.max(0, Number(product.stock || 0));
   const total = useMemo(() => unitPrice * quantity, [unitPrice, quantity]);
 
   async function finish(event: React.FormEvent<HTMLFormElement>) {
@@ -75,9 +77,9 @@ export function ProductBuyBox({ storeId, whatsapp, color, product, options }: { 
       <div>
         <span className="mb-2 block text-sm font-extrabold">Quantidade</span>
         <div className="flex h-12 w-36 items-center justify-between rounded-xl border border-slate-200 px-3">
-          <button type="button" onClick={() => setQuantity(value => Math.max(1, value - 1))}><Minus size={17} /></button>
+          <button type="button" disabled={availableStock === 0} onClick={() => setQuantity(value => Math.max(1, value - 1))}><Minus size={17} /></button>
           <strong>{quantity}</strong>
-          <button type="button" onClick={() => setQuantity(value => value + 1)}><Plus size={17} /></button>
+          <button type="button" disabled={availableStock === 0 || quantity >= availableStock} onClick={() => setQuantity(value => Math.min(availableStock, value + 1))}><Plus size={17} /></button>
         </div>
       </div>
       <div className="grid gap-3 border-t border-slate-100 pt-5">
@@ -89,9 +91,9 @@ export function ProductBuyBox({ storeId, whatsapp, color, product, options }: { 
         <span>Total</span>
         <span>{formatCurrency(total)}</span>
       </div>
-      <button disabled={loading} className="flex h-13 w-full items-center justify-center gap-2 rounded-xl bg-[#25D366] font-extrabold text-white disabled:opacity-60">
+      <button disabled={loading || availableStock === 0} className="flex h-13 w-full items-center justify-center gap-2 rounded-xl bg-[#25D366] font-extrabold text-white disabled:opacity-60">
         {loading ? <Loader2 className="animate-spin" /> : <MessageCircle />}
-        Registrar e enviar ao WhatsApp
+        {availableStock === 0 ? "Produto sem estoque" : "Registrar e enviar ao WhatsApp"}
       </button>
     </form>
     <p className="mt-4 flex items-center gap-2 text-xs font-bold text-slate-400"><ShoppingBag size={15} />O pedido tambem fica salvo no painel da loja.</p>
