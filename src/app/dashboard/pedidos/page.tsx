@@ -1,4 +1,4 @@
-import { CheckCircle2, Clock, MessageCircle, ShoppingBag } from "lucide-react";
+import { CheckCircle2, Clock, MessageCircle, Search, ShoppingBag } from "lucide-react";
 import { updateOrderStatus } from "@/app/dashboard/actions";
 import { createClient } from "@/lib/supabase/server";
 import { formatCurrency } from "@/lib/utils";
@@ -12,12 +12,28 @@ const statuses = [
   { value: "cancelled", label: "Cancelado", className: "bg-red-50 text-red-700" },
 ];
 
-export default async function OrdersPage() {
+export default async function OrdersPage({ searchParams }: { searchParams: Promise<{ status?: string; q?: string }> }) {
+  const filters = await searchParams;
+  const selectedStatus = statuses.some(status => status.value === filters.status) ? filters.status : "all";
+  const search = String(filters.q || "").trim();
   const supabase = await createClient();
-  const { data: orders } = supabase ? await supabase
-    .from("orders")
+  let query = supabase
+    ?.from("orders")
     .select("id,order_number,status,total,customer_name,customer_phone,created_at,whatsapp_sent_at,order_items(id,product_name,variant_name,quantity,unit_price)")
-    .order("created_at", { ascending: false }) : { data: [] };
+    .order("created_at", { ascending: false });
+  if (query && selectedStatus !== "all") query = query.eq("status", selectedStatus);
+  if (query && search) {
+    const orderNumber = Number(search);
+    const searchFilter = Number.isInteger(orderNumber) && orderNumber > 0
+      ? `customer_name.ilike.%${search}%,customer_phone.ilike.%${search}%,order_number.eq.${orderNumber}`
+      : `customer_name.ilike.%${search}%,customer_phone.ilike.%${search}%`;
+    query = query.or(searchFilter);
+  }
+  const { data: orders } = query ? await query : { data: [] };
+  const { data: store } = supabase ? await supabase
+    .from("stores")
+    .select("whatsapp")
+    .maybeSingle() : { data: null };
 
   return <div className="mx-auto max-w-6xl">
     <div>
@@ -25,6 +41,18 @@ export default async function OrdersPage() {
       <h2 className="font-display mt-1 text-3xl font-extrabold">Pedidos</h2>
       <p className="mt-2 text-slate-500">Acompanhe cada venda do recebimento ate a entrega.</p>
     </div>
+
+    <form className="mt-7 grid gap-3 rounded-2xl border border-slate-200 bg-white p-4 md:grid-cols-[1fr_220px_auto]">
+      <label className="relative">
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+        <input name="q" defaultValue={search} placeholder="Buscar por cliente, telefone ou numero do pedido" className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-11 pr-4 text-sm font-semibold outline-none focus:border-brand" />
+      </label>
+      <select name="status" defaultValue={selectedStatus} className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm font-bold">
+        <option value="all">Todos os status</option>
+        {statuses.map(status => <option key={status.value} value={status.value}>{status.label}</option>)}
+      </select>
+      <button className="h-11 rounded-xl bg-brand px-5 text-sm font-extrabold text-white">Filtrar</button>
+    </form>
 
     {!orders?.length ? <div className="mt-8 grid min-h-96 place-items-center rounded-3xl border border-dashed border-slate-300 bg-white text-center">
       <div>
@@ -35,6 +63,8 @@ export default async function OrdersPage() {
     </div> : <div className="mt-8 space-y-4">
       {orders.map(order => {
         const status = statuses.find(item => item.value === order.status) || statuses[0];
+        const whatsappMessage = buildCustomerWhatsAppMessage(order);
+        const customerWhatsapp = normalizeBrazilPhone(order.customer_phone);
         return <article key={order.id} className="rounded-2xl border border-slate-200 bg-white p-5">
         <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
           <div>
@@ -68,6 +98,10 @@ export default async function OrdersPage() {
             <span>Total</span>
             <span className="text-brand">{formatCurrency(order.total)}</span>
           </div>
+          <div className="mt-4 flex flex-wrap gap-2 border-t border-slate-100 pt-4">
+            <a href={`https://wa.me/${customerWhatsapp}?text=${encodeURIComponent(whatsappMessage)}`} target="_blank" rel="noreferrer" className="inline-flex h-10 items-center gap-2 rounded-xl bg-[#25D366] px-4 text-sm font-extrabold text-white"><MessageCircle size={17} />Chamar cliente</a>
+            {store?.whatsapp && <a href={`https://wa.me/${normalizeBrazilPhone(store.whatsapp)}`} target="_blank" rel="noreferrer" className="inline-flex h-10 items-center gap-2 rounded-xl border border-slate-200 px-4 text-sm font-extrabold text-slate-600"><MessageCircle size={17} />WhatsApp da loja</a>}
+          </div>
         </div>
       </article>;
       })}
@@ -77,4 +111,21 @@ export default async function OrdersPage() {
 
 function formatDateTime(value: string) {
   return new Date(value).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
+}
+
+function normalizeBrazilPhone(value: string) {
+  const digits = value.replace(/\D/g, "");
+  return digits.startsWith("55") ? digits : `55${digits}`;
+}
+
+function buildCustomerWhatsAppMessage(order: {
+  order_number: number;
+  total: number | string;
+  order_items: { product_name: string; variant_name: string | null; quantity: number; unit_price: number | string }[];
+}) {
+  const lines = order.order_items.map(item => {
+    const variation = item.variant_name ? ` (${item.variant_name})` : "";
+    return `- ${item.quantity}x ${item.product_name}${variation}: ${formatCurrency(Number(item.unit_price) * item.quantity)}`;
+  });
+  return `Ola! Sobre seu pedido #${order.order_number}:\n\n${lines.join("\n")}\n\nTotal: ${formatCurrency(order.total)}\n\nPodemos continuar por aqui.`;
 }
