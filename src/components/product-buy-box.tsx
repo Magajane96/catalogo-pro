@@ -47,6 +47,7 @@ export function ProductBuyBox({ storeId, whatsapp, color, product, options }: { 
       const variations = selectedOptions.length ? `\nVariacoes:\n${selectedOptions.map(item => `- ${item}`).join("\n")}` : "";
       const message = `Ola! Gostaria de realizar o pedido #${result.order_number}:\n\nProduto: ${product.name}${variations}\nQuantidade: ${quantity}\nValor: ${formatCurrency(total)}\n\nCliente: ${form.get("name")}\nTelefone: ${form.get("phone")}\nTotal: ${formatCurrency(result.total)}`;
       window.open(`https://wa.me/${whatsapp.replace(/\D/g, "")}?text=${encodeURIComponent(message)}`, "_blank");
+      void markOrderWhatsAppSent(result.id);
       toast.success("Pedido registrado com sucesso!");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Nao foi possivel registrar o pedido.");
@@ -98,4 +99,14 @@ export function ProductBuyBox({ storeId, whatsapp, color, product, options }: { 
     </form>
     <p className="mt-4 flex items-center gap-2 text-xs font-bold text-slate-400"><ShoppingBag size={15} />O pedido tambem fica salvo no painel da loja.</p>
   </section>;
+}
+
+async function markOrderWhatsAppSent(orderId: string) {
+  try {
+    await fetch("/api/orders/whatsapp-sent", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ orderId }),
+    });
+  } catch {}
 }
