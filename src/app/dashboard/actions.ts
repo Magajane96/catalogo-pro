@@ -63,6 +63,7 @@ export async function createProduct(formData: FormData) {
   const slug = name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") + "-" + Date.now().toString(36);
   const { data: product, error } = await supabase.from("products").insert({ store_id: store.id, category_id: formData.get("category_id") || null, name, slug, description: String(formData.get("description") || ""), price, promotional_price: formData.get("promotional_price") ? Number(String(formData.get("promotional_price")).replace(",", ".")) : null, stock: Number(formData.get("stock") || 0), sku: String(formData.get("sku") || ""), internal_code: String(formData.get("internal_code") || ""), weight: formData.get("weight") ? Number(String(formData.get("weight")).replace(",", ".")) : null, active: formData.get("active") === "on" }).select("id").single();
   if (error) throw new Error(error.message);
+  await syncProductOptions(supabase, product.id, formData);
   await uploadProductImages(supabase, product.id, formData.getAll("images"));
   revalidatePath("/dashboard/produtos"); redirect("/dashboard/produtos");
 }
@@ -72,8 +73,48 @@ export async function updateProduct(formData: FormData) {
   const id = String(formData.get("id"));
   const { error } = await supabase.from("products").update({ category_id: formData.get("category_id") || null, name: String(formData.get("name")), description: String(formData.get("description") || ""), price: Number(String(formData.get("price")).replace(",", ".")), promotional_price: formData.get("promotional_price") ? Number(String(formData.get("promotional_price")).replace(",", ".")) : null, stock: Number(formData.get("stock") || 0), sku: String(formData.get("sku") || ""), internal_code: String(formData.get("internal_code") || ""), weight: formData.get("weight") ? Number(String(formData.get("weight")).replace(",", ".")) : null, active: formData.get("active") === "on", updated_at: new Date().toISOString() }).eq("id", id);
   if (error) throw new Error(error.message);
+  await syncProductOptions(supabase, id, formData);
   await uploadProductImages(supabase, id, formData.getAll("images"));
   revalidatePath("/dashboard/produtos"); revalidatePath(`/dashboard/produtos/${id}/editar`); redirect("/dashboard/produtos");
+}
+
+async function syncProductOptions(supabase: NonNullable<Awaited<ReturnType<typeof createClient>>>, productId: string, formData: FormData) {
+  const optionNames = formData.getAll("option_names").map(value => String(value).trim());
+  const optionValues = formData.getAll("option_values").map(value => String(value).trim());
+  const optionColors = formData.getAll("option_colors").map(value => String(value).trim());
+  const options = optionNames.map((name, index) => ({
+    name,
+    values: splitCsv(optionValues[index] || ""),
+    colors: splitCsv(optionColors[index] || ""),
+  })).filter(option => option.name && option.values.length);
+
+  await supabase.from("product_options").delete().eq("product_id", productId);
+
+  for (let optionIndex = 0; optionIndex < options.length; optionIndex++) {
+    const option = options[optionIndex];
+    const { data, error } = await supabase.from("product_options").insert({ product_id: productId, name: option.name, position: optionIndex }).select("id").single();
+    if (error) throw new Error(error.message);
+    const values = option.values.map((value, valueIndex) => ({
+      option_id: data.id,
+      value,
+      color_hex: normalizeHexColor(option.colors[valueIndex]),
+      position: valueIndex,
+    }));
+    if (values.length) {
+      const { error: valuesError } = await supabase.from("product_option_values").insert(values);
+      if (valuesError) throw new Error(valuesError.message);
+    }
+  }
+}
+
+function splitCsv(value: string) {
+  return value.split(",").map(item => item.trim()).filter(Boolean);
+}
+
+function normalizeHexColor(value?: string) {
+  if (!value) return null;
+  const color = value.trim();
+  return /^#[0-9a-fA-F]{6}$/.test(color) ? color : null;
 }
 
 async function uploadProductImages(supabase: NonNullable<Awaited<ReturnType<typeof createClient>>>, productId: string, values: FormDataEntryValue[]) {
