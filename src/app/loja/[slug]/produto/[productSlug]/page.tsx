@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowLeft, MessageCircle, Package, ShoppingBag } from "lucide-react";
 import { notFound } from "next/navigation";
 import { ProductBuyBox } from "@/components/product-buy-box";
@@ -47,7 +48,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     <header className="border-b border-slate-100 bg-white">
       <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-5">
         <Link href={`/loja/${store.slug}`} className="flex items-center gap-3">
-          {store.logo_url ? <img src={store.logo_url} alt={store.name} className="size-11 rounded-full object-cover" /> : <span className="grid size-11 place-items-center rounded-full text-white" style={{ background: store.primary_color }}><ShoppingBag /></span>}
+          {store.logo_url ? <Image src={store.logo_url} alt={store.name} width={44} height={44} className="size-11 rounded-full object-cover" /> : <span className="grid size-11 place-items-center rounded-full text-white" style={{ background: store.primary_color }}><ShoppingBag /></span>}
           <div>
             <h1 className="font-display text-lg font-extrabold">{store.name}</h1>
             <p className="text-xs text-slate-400">{store.category}</p>
@@ -62,10 +63,10 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       <div className="grid gap-8 lg:grid-cols-[1.05fr_.95fr]">
         <div>
           <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white">
-            {images[0] ? <img src={images[0].url} alt={product.name} className="aspect-square w-full object-cover" /> : <div className="grid aspect-square place-items-center bg-slate-100 text-slate-300"><Package size={72} /></div>}
+            {images[0] ? <div className="relative aspect-square w-full"><Image src={images[0].url} alt={product.name} fill sizes="(min-width: 1024px) 50vw, 100vw" className="object-cover" priority /></div> : <div className="grid aspect-square place-items-center bg-slate-100 text-slate-300"><Package size={72} /></div>}
           </div>
           {images.length > 1 && <div className="mt-4 grid grid-cols-4 gap-3">
-            {images.slice(1, 5).map(image => <div key={image.id} className="overflow-hidden rounded-2xl border border-slate-200 bg-white"><img src={image.url} alt={product.name} className="aspect-square w-full object-cover" /></div>)}
+            {images.slice(1, 5).map(image => <div key={image.id} className="relative aspect-square overflow-hidden rounded-2xl border border-slate-200 bg-white"><Image src={image.url} alt={product.name} fill sizes="25vw" className="object-cover" /></div>)}
           </div>}
         </div>
 
@@ -93,7 +94,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           {(related as RelatedProduct[]).map(item => {
             const image = item.product_images?.find(row => row.is_primary) || item.product_images?.[0];
             return <Link key={item.id} href={`/loja/${store.slug}/produto/${item.slug}`} className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
-              <div className="grid aspect-square place-items-center overflow-hidden bg-slate-100 text-slate-300">{image ? <img src={image.url} alt={item.name} className="size-full object-cover" /> : <ShoppingBag size={42} />}</div>
+              <div className="grid aspect-square place-items-center overflow-hidden bg-slate-100 text-slate-300">{image ? <div className="relative size-full"><Image src={image.url} alt={item.name} fill sizes="(min-width: 1024px) 25vw, 50vw" className="object-cover" /></div> : <ShoppingBag size={42} />}</div>
               <div className="p-4">
                 <h4 className="font-display font-extrabold">{item.name}</h4>
                 <p className="mt-2 font-display text-lg font-extrabold" style={{ color: store.primary_color }}>{formatCurrency(item.promotional_price || item.price)}</p>
