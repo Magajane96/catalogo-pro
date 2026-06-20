@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { AlertTriangle, Edit3, ImageIcon, Package, Plus, Search, Trash2 } from "lucide-react";
+import { AlertTriangle, Edit3, ImageIcon, Lock, Package, Plus, Search, Sparkles, Trash2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { deleteProduct } from "@/app/dashboard/actions";
 import { formatCurrency } from "@/lib/utils";
@@ -17,6 +17,13 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
   const search = String(filters.q || "").trim();
   const selectedFilter = stockFilters.some(filter => filter.value === filters.filter) ? filters.filter : "all";
   const supabase = await createClient();
+  const [{ data: profile }, { count: totalProducts }] = supabase ? await Promise.all([
+    supabase.from("profiles").select("plan").maybeSingle(),
+    supabase.from("products").select("id", { count: "exact", head: true }),
+  ]) : [{ data: null }, { count: 0 }];
+  const plan = profile?.plan === "pro" ? "pro" : "free";
+  const productLimit = plan === "free" ? 20 : null;
+  const reachedProductLimit = Boolean(productLimit && (totalProducts || 0) >= productLimit);
   let query = supabase
     ?.from("products")
     .select("id,name,sku,price,promotional_price,stock,active,product_images(url,is_primary)")
@@ -33,9 +40,22 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
   const published = productRows.filter(product => product.active).length;
 
   return <div className="mx-auto max-w-7xl">
-    <div className="flex items-end justify-between"><div><p className="text-sm font-bold text-slate-400">CATALOGO</p><h2 className="font-display mt-1 text-3xl font-extrabold">Produtos</h2><p className="mt-2 text-slate-500">Gerencie tudo o que aparece na sua loja.</p></div><Link href="/dashboard/produtos/novo" className="flex h-11 items-center gap-2 rounded-xl bg-brand px-5 text-sm font-extrabold text-white"><Plus size={18}/>Novo produto</Link></div>
+    <div className="flex items-end justify-between"><div><p className="text-sm font-bold text-slate-400">CATALOGO</p><h2 className="font-display mt-1 text-3xl font-extrabold">Produtos</h2><p className="mt-2 text-slate-500">Gerencie tudo o que aparece na sua loja.</p></div>{reachedProductLimit ? <span className="flex h-11 items-center gap-2 rounded-xl bg-slate-200 px-5 text-sm font-extrabold text-slate-500"><Lock size={18}/>Limite atingido</span> : <Link href="/dashboard/produtos/novo" className="flex h-11 items-center gap-2 rounded-xl bg-brand px-5 text-sm font-extrabold text-white"><Plus size={18}/>Novo produto</Link>}</div>
 
-    <div className="mt-7 grid gap-3 sm:grid-cols-3">
+    <section className={`mt-7 rounded-2xl border p-5 ${reachedProductLimit ? "border-amber-200 bg-amber-50" : "border-emerald-100 bg-emerald-50"}`}>
+      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+        <div className="flex gap-3">
+          <span className={`grid size-11 shrink-0 place-items-center rounded-xl bg-white ${reachedProductLimit ? "text-amber-600" : "text-brand"}`}>{plan === "pro" ? <Sparkles size={21} /> : <Package size={21} />}</span>
+          <div>
+            <h3 className="font-display text-lg font-extrabold">{plan === "pro" ? "Plano PRO ativo" : "Plano gratuito"}</h3>
+            <p className="mt-1 text-sm font-semibold text-slate-600">{plan === "pro" ? "Produtos ilimitados liberados para sua loja." : `${totalProducts || 0} de ${productLimit} produtos usados.`}</p>
+          </div>
+        </div>
+        {plan === "free" && <span className={`rounded-full px-4 py-2 text-sm font-black ${reachedProductLimit ? "bg-amber-600 text-white" : "bg-white text-brand"}`}>{reachedProductLimit ? "Upgrade PRO em breve" : `${Math.max(0, (productLimit || 0) - (totalProducts || 0))} vagas restantes`}</span>}
+      </div>
+    </section>
+
+    <div className="mt-5 grid gap-3 sm:grid-cols-3">
       <StockCard label="Publicados" value={published} className="bg-emerald-50 text-emerald-700" />
       <StockCard label="Estoque baixo" value={lowStock} className="bg-amber-50 text-amber-700" />
       <StockCard label="Sem estoque" value={outOfStock} className="bg-red-50 text-red-700" />
@@ -52,7 +72,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
       <button className="h-11 rounded-xl bg-brand px-5 text-sm font-extrabold text-white">Filtrar</button>
     </form>
 
-    {!productRows.length ? <div className="mt-8 grid min-h-96 place-items-center rounded-3xl border border-dashed border-slate-300 bg-white p-8 text-center"><div><span className="mx-auto grid size-16 place-items-center rounded-2xl bg-emerald-50 text-brand"><Package size={28}/></span><h3 className="font-display mt-5 text-xl font-extrabold">Nenhum produto encontrado</h3><p className="mx-auto mt-2 max-w-sm text-slate-500">{search || selectedFilter !== "all" ? "Ajuste a busca ou os filtros para ver mais produtos." : "Cadastre o primeiro produto para ele aparecer automaticamente na sua loja."}</p><Link href="/dashboard/produtos/novo" className="mt-6 inline-flex h-11 items-center gap-2 rounded-xl bg-brand px-5 text-sm font-extrabold text-white"><Plus size={18}/>Cadastrar produto</Link></div></div> : <div className="mt-8 overflow-hidden rounded-2xl border border-slate-200 bg-white">
+    {!productRows.length ? <div className="mt-8 grid min-h-96 place-items-center rounded-3xl border border-dashed border-slate-300 bg-white p-8 text-center"><div><span className="mx-auto grid size-16 place-items-center rounded-2xl bg-emerald-50 text-brand"><Package size={28}/></span><h3 className="font-display mt-5 text-xl font-extrabold">Nenhum produto encontrado</h3><p className="mx-auto mt-2 max-w-sm text-slate-500">{search || selectedFilter !== "all" ? "Ajuste a busca ou os filtros para ver mais produtos." : "Cadastre o primeiro produto para ele aparecer automaticamente na sua loja."}</p>{reachedProductLimit ? <span className="mt-6 inline-flex h-11 items-center gap-2 rounded-xl bg-slate-200 px-5 text-sm font-extrabold text-slate-500"><Lock size={18}/>Limite atingido</span> : <Link href="/dashboard/produtos/novo" className="mt-6 inline-flex h-11 items-center gap-2 rounded-xl bg-brand px-5 text-sm font-extrabold text-white"><Plus size={18}/>Cadastrar produto</Link>}</div></div> : <div className="mt-8 overflow-hidden rounded-2xl border border-slate-200 bg-white">
       <div className="hidden grid-cols-[1fr_120px_140px_100px] gap-4 border-b border-slate-100 px-5 py-3 text-xs font-black uppercase text-slate-400 sm:grid"><span>Produto</span><span>Preco</span><span>Estoque</span><span>Acoes</span></div>
       {productRows.map(product=>{const image=product.product_images?.find(item=>item.is_primary)||product.product_images?.[0];const stockStatus=getStockStatus(product.stock);return <div key={product.id} className="grid grid-cols-[1fr_auto] items-center gap-4 border-b border-slate-100 px-5 py-4 last:border-0 sm:grid-cols-[1fr_120px_140px_100px]">
         <div className="flex items-center gap-3"><span className="grid size-12 shrink-0 place-items-center overflow-hidden rounded-xl bg-slate-100 text-slate-400">{image?<img src={image.url} alt={product.name} className="size-full object-cover"/>:<ImageIcon/>}</span><div><p className="font-extrabold">{product.name}</p><p className="text-xs font-bold text-slate-400">{product.active ? "Publicado" : "Rascunho"}{product.sku ? ` | SKU ${product.sku}` : ""}</p></div></div>
