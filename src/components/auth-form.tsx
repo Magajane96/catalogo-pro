@@ -36,7 +36,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
   async function resetPassword() {
     const email = prompt("Digite o e-mail da sua conta:");
     if (!email) return;
-    try { const supabase = createClient(); const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${location.origin}/auth/redefinir-senha` }); if (error) throw error; toast.success("Enviamos as instrucoes para seu e-mail."); }
+    try { const supabase = createClient(); const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${location.origin}/auth/callback?next=/auth/redefinir-senha` }); if (error) throw error; toast.success("Enviamos as instrucoes para seu e-mail."); }
     catch (error) { toast.error(error instanceof Error ? error.message : "Falha ao enviar o e-mail."); }
   }
 
