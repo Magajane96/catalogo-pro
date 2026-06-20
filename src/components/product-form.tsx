@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { ArrowLeft, ImagePlus, Save, Trash2 } from "lucide-react";
-import { createProduct, deleteProductImage, updateProduct } from "@/app/dashboard/actions";
+import { ArrowLeft, ImagePlus, Save } from "lucide-react";
+import { createProduct, updateProduct } from "@/app/dashboard/actions";
+import { ProductImageManager } from "@/components/product-image-manager";
 
 type Category = { id: string; name: string };
 type ProductOption = {
@@ -21,7 +22,7 @@ type Product = {
   internal_code: string | null;
   weight: number | null;
   active: boolean;
-  product_images: { id: string; url: string; storage_path: string | null; is_primary: boolean }[];
+  product_images: { id: string; url: string; storage_path: string | null; is_primary: boolean; position: number }[];
   product_options?: ProductOption[];
 };
 
@@ -70,15 +71,7 @@ export function ProductForm({ categories, product }: { categories: Category[]; p
 
         <section className="rounded-2xl border border-slate-200 bg-white p-6">
           <h3 className="font-display text-lg font-extrabold">Fotos do produto</h3>
-          {product?.product_images?.length ? <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3">
-            {product.product_images.map(image => <div key={image.id} className="relative overflow-hidden rounded-xl border border-slate-200">
-              <img src={image.url} alt="Imagem do produto" className="aspect-square w-full object-cover" />
-              {image.is_primary && <span className="absolute left-2 top-2 rounded-full bg-brand px-2 py-1 text-[10px] font-black text-white">PRINCIPAL</span>}
-              <button formAction={deleteProductImage} name="id" value={image.id} className="absolute bottom-2 right-2 grid size-8 place-items-center rounded-lg bg-white text-red-600 shadow"><Trash2 size={15} /></button>
-              <input type="hidden" name="path" value={image.storage_path || ""} />
-              <input type="hidden" name="product_id" value={product.id} />
-            </div>)}
-          </div> : null}
+          {product?.product_images?.length ? <ProductImageManager productId={product.id} images={product.product_images} /> : null}
           <label className="mt-5 grid min-h-40 cursor-pointer place-items-center rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 text-center">
             <input type="file" name="images" multiple accept="image/png,image/jpeg,image/webp" className="sr-only" />
             <div className="text-slate-400">

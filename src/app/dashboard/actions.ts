@@ -145,10 +145,32 @@ async function uploadStoreAsset(supabase: NonNullable<Awaited<ReturnType<typeof 
 export async function deleteProductImage(formData: FormData) {
   const supabase = await createClient(); if (!supabase) return;
   const id = String(formData.get("id"));
-  const { data: image } = await supabase.from("product_images").select("storage_path,product_id").eq("id", id).single(); if (!image) return;
+  const { data: image } = await supabase.from("product_images").select("storage_path,product_id,is_primary").eq("id", id).single(); if (!image) return;
   if (image.storage_path) await supabase.storage.from("product-images").remove([image.storage_path]); await supabase.from("product_images").delete().eq("id", id);
   const productId = image.product_id;
+  if (image.is_primary) {
+    const { data: nextImage } = await supabase.from("product_images").select("id").eq("product_id", productId).order("position", { ascending: true }).limit(1).maybeSingle();
+    if (nextImage) await supabase.from("product_images").update({ is_primary: true }).eq("id", nextImage.id);
+  }
   revalidatePath(`/dashboard/produtos/${productId}/editar`);
+}
+
+export async function updateProductImages(formData: FormData) {
+  const supabase = await createClient(); if (!supabase) return;
+  const productId = String(formData.get("product_id"));
+  const primaryId = String(formData.get("primary_image_id") || "");
+  const imageIds = String(formData.get("image_ids") || "").split(",").map(id => id.trim()).filter(Boolean);
+  if (!productId || !imageIds.length) return;
+
+  await supabase.from("product_images").update({ is_primary: false }).eq("product_id", productId);
+  for (let index = 0; index < imageIds.length; index++) {
+    await supabase.from("product_images").update({
+      position: index,
+      is_primary: imageIds[index] === primaryId || (!primaryId && index === 0),
+    }).eq("id", imageIds[index]).eq("product_id", productId);
+  }
+  revalidatePath(`/dashboard/produtos/${productId}/editar`);
+  revalidatePath("/dashboard/produtos");
 }
 
 export async function createCategory(formData: FormData) {
