@@ -8,7 +8,16 @@ type Customer = {
   phone: string;
   email: string | null;
   created_at: string;
-  orders: { id: string; total: number | string; created_at: string }[];
+  orders: { id: string; order_number: number; status: string; total: number | string; created_at: string }[];
+};
+
+const statusLabels: Record<string, string> = {
+  new: "Novo",
+  in_progress: "Em andamento",
+  picking: "Separando",
+  finished: "Finalizado",
+  delivered: "Entregue",
+  cancelled: "Cancelado",
 };
 
 export default async function CustomersPage({ searchParams }: { searchParams: Promise<{ q?: string; sort?: string }> }) {
@@ -19,7 +28,7 @@ export default async function CustomersPage({ searchParams }: { searchParams: Pr
 
   let query = supabase
     ?.from("customers")
-    .select("id,name,phone,email,created_at,orders(id,total,created_at)")
+    .select("id,name,phone,email,created_at,orders(id,order_number,status,total,created_at)")
     .order("created_at", { ascending: false });
   if (query && search) query = query.or(`name.ilike.%${search}%,phone.ilike.%${search}%,email.ilike.%${search}%`);
 
@@ -64,6 +73,7 @@ export default async function CustomersPage({ searchParams }: { searchParams: Pr
       {customerRows.map(customer => {
         const spent = customerTotal(customer);
         const lastOrder = latestOrderDate(customer);
+        const recentOrders = latestOrders(customer);
         const message = `Ola, ${customer.name}! Tudo bem? Aqui e da loja. Podemos continuar seu atendimento por aqui.`;
         return <article key={customer.id} className="rounded-2xl border border-slate-200 bg-white p-5">
           <div className="flex items-start justify-between gap-4">
@@ -90,6 +100,22 @@ export default async function CustomersPage({ searchParams }: { searchParams: Pr
             <div>
               <span className="text-slate-400">Ultimo pedido</span>
               <strong className="mt-1 block">{lastOrder ? formatDate(lastOrder) : "Sem pedidos"}</strong>
+            </div>
+          </div>
+
+          <div className="mt-5 border-t border-slate-100 pt-4">
+            <div className="flex items-center justify-between gap-3">
+              <h4 className="text-sm font-extrabold">Historico de pedidos</h4>
+              {customer.orders.length > 3 && <span className="text-xs font-bold text-slate-400">+{customer.orders.length - 3} anteriores</span>}
+            </div>
+            <div className="mt-3 space-y-2">
+              {recentOrders.length ? recentOrders.map(order => <div key={order.id} className="grid grid-cols-[1fr_auto] gap-3 rounded-xl bg-slate-50 px-4 py-3 text-sm">
+                <div>
+                  <p className="font-extrabold">Pedido #{order.order_number}</p>
+                  <p className="mt-1 text-xs font-bold text-slate-400">{formatDate(order.created_at)} - {statusLabels[order.status] || order.status}</p>
+                </div>
+                <strong className="text-brand">{formatCurrency(order.total)}</strong>
+              </div>) : <p className="rounded-xl bg-slate-50 p-4 text-sm font-bold text-slate-400">Nenhum pedido registrado para este cliente.</p>}
             </div>
           </div>
 
@@ -126,6 +152,10 @@ function latestOrderDate(customer: Customer) {
     if (!latest) return order.created_at;
     return new Date(order.created_at) > new Date(latest) ? order.created_at : latest;
   }, null);
+}
+
+function latestOrders(customer: Customer) {
+  return [...customer.orders].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 3);
 }
 
 function normalizeBrazilPhone(value: string) {
