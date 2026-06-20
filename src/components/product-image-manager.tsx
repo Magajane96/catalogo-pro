@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { ArrowDown, ArrowUp, GripVertical, Save, Star, Trash2 } from "lucide-react";
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
@@ -83,7 +84,7 @@ export function ProductImageManager({ productId, images }: { productId: string; 
           <span className="grid size-7 place-items-center rounded-lg bg-white/90 text-slate-400 shadow"><GripVertical size={15} /></span>
           {primaryId === image.id && <span className="rounded-full bg-brand px-2 py-1 text-[10px] font-black text-white">PRINCIPAL</span>}
         </div>
-        <img src={image.url} alt="Imagem do produto" className="aspect-square w-full object-cover" />
+        <div className="relative aspect-square w-full"><Image src={image.url} alt="Imagem do produto" fill sizes="(min-width: 640px) 33vw, 50vw" className="object-cover" /></div>
         <div className="absolute inset-x-2 bottom-2 grid grid-cols-4 gap-1">
           <button type="button" disabled={pending || index === 0} onClick={() => move(index, -1)} className="grid size-8 place-items-center rounded-lg bg-white text-slate-600 shadow disabled:opacity-40" aria-label="Mover imagem para cima"><ArrowUp size={15} /></button>
           <button type="button" disabled={pending || index === items.length - 1} onClick={() => move(index, 1)} className="grid size-8 place-items-center rounded-lg bg-white text-slate-600 shadow disabled:opacity-40" aria-label="Mover imagem para baixo"><ArrowDown size={15} /></button>

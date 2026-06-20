@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { ImagePlus, Palette, Save, ShoppingBag } from "lucide-react";
 import { updateStore } from "@/app/dashboard/actions";
 import { createClient } from "@/lib/supabase/server";
@@ -56,11 +57,11 @@ export default async function PersonalizePage() {
           <div className="mt-5 grid gap-5 sm:grid-cols-2">
             <label className="grid min-h-44 cursor-pointer place-items-center overflow-hidden rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 text-center">
               <input type="file" name="logo" accept="image/png,image/jpeg,image/webp" className="sr-only" />
-              {store.logo_url ? <img src={store.logo_url} alt="Logo atual" className="size-full object-cover" /> : <ImagePickerLabel title="Enviar logo" />}
+              {store.logo_url ? <span className="relative size-full"><Image src={store.logo_url} alt="Logo atual" fill sizes="(min-width: 640px) 50vw, 100vw" className="object-cover" /></span> : <ImagePickerLabel title="Enviar logo" />}
             </label>
             <label className="grid min-h-44 cursor-pointer place-items-center overflow-hidden rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 text-center">
               <input type="file" name="banner" accept="image/png,image/jpeg,image/webp" className="sr-only" />
-              {store.banner_url ? <img src={store.banner_url} alt="Banner atual" className="size-full object-cover" /> : <ImagePickerLabel title="Enviar banner" />}
+              {store.banner_url ? <span className="relative size-full"><Image src={store.banner_url} alt="Banner atual" fill sizes="(min-width: 640px) 50vw, 100vw" className="object-cover" /></span> : <ImagePickerLabel title="Enviar banner" />}
             </label>
           </div>
         </section>
@@ -93,7 +94,7 @@ export default async function PersonalizePage() {
           <div className="flex items-center gap-2 text-sm font-extrabold text-slate-400"><Palette size={17} />PREVIEW</div>
           <div className="mt-5 overflow-hidden rounded-3xl border border-slate-100 bg-[#f8f8f6]">
             <div className="flex items-center gap-3 bg-white p-4">
-              {store.logo_url ? <img src={store.logo_url} alt={store.name} className="size-11 rounded-full object-cover" /> : <span className="grid size-11 place-items-center rounded-full text-white" style={{ background: store.primary_color }}><ShoppingBag size={20} /></span>}
+              {store.logo_url ? <Image src={store.logo_url} alt={store.name} width={44} height={44} className="size-11 rounded-full object-cover" /> : <span className="grid size-11 place-items-center rounded-full text-white" style={{ background: store.primary_color }}><ShoppingBag size={20} /></span>}
               <div>
                 <p className="font-display text-sm font-extrabold">{store.name}</p>
                 <p className="text-xs text-slate-400">{store.category}</p>
