@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { createClient } from "@supabase/supabase-js";
+import { siteUrl } from "@/lib/seo";
 
 type StoreRow = {
   slug: string;
@@ -12,10 +13,6 @@ type ProductRow = {
   stores: { slug: string } | { slug: string }[] | null;
 };
 
-function siteBaseUrl() {
-  return (process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000").replace(/\/$/, "");
-}
-
 function supabaseClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -24,10 +21,9 @@ function supabaseClient() {
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = siteBaseUrl();
   const staticRoutes: MetadataRoute.Sitemap = [
     {
-      url: baseUrl,
+      url: siteUrl("/"),
       lastModified: new Date(),
       changeFrequency: "weekly",
       priority: 1,
@@ -47,7 +43,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ]);
 
   const storeRoutes = ((stores || []) as StoreRow[]).map(store => ({
-    url: `${baseUrl}/loja/${store.slug}`,
+    url: siteUrl(`/loja/${store.slug}`),
     lastModified: new Date(store.updated_at),
     changeFrequency: "daily" as const,
     priority: 0.8,
@@ -57,7 +53,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const store = Array.isArray(product.stores) ? product.stores[0] : product.stores;
     if (!product.slug || !store?.slug) return [];
     return [{
-      url: `${baseUrl}/loja/${store.slug}/produto/${product.slug}`,
+      url: siteUrl(`/loja/${store.slug}/produto/${product.slug}`),
       lastModified: new Date(product.updated_at),
       changeFrequency: "weekly" as const,
       priority: 0.7,

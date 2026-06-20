@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { ProductBuyBox } from "@/components/product-buy-box";
 import { StoreVisitTracker } from "@/components/store-visit-tracker";
 import { createClient } from "@/lib/supabase/server";
+import { jsonLd, siteUrl } from "@/lib/seo";
 import { formatCurrency } from "@/lib/utils";
 
 type ProductImage = { id: string; url: string; is_primary: boolean; position: number };
@@ -42,8 +43,27 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const images = [...(product.product_images || [])].sort((a, b) => Number(b.is_primary) - Number(a.is_primary) || a.position - b.position) as ProductImage[];
   const options = [...(product.product_options || [])].sort((a, b) => a.position - b.position).map(option => ({ ...option, product_option_values: [...(option.product_option_values || [])].sort((a, b) => a.position - b.position) })) as ProductOption[];
   const { data: related } = await supabase.from("products").select("id,name,slug,price,promotional_price,product_images(id,url,is_primary,position)").eq("store_id", store.id).eq("active", true).neq("id", product.id).limit(4);
+  const price = Number(product.promotional_price || product.price);
+  const schema = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: product.name,
+    description: product.description || "Produto do catalogo online",
+    image: images.map(image => image.url),
+    sku: product.sku || undefined,
+    brand: { "@type": "Brand", name: store.name },
+    offers: {
+      "@type": "Offer",
+      url: siteUrl(`/loja/${store.slug}/produto/${product.slug}`),
+      priceCurrency: "BRL",
+      price,
+      availability: product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+      seller: { "@type": "Store", name: store.name },
+    },
+  };
 
   return <main className="min-h-screen bg-[#f8f8f6]" style={{ fontFamily: store.font_family }}>
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(schema) }} />
     <StoreVisitTracker storeId={store.id} path={`/loja/${slug}/produto/${productSlug}`} />
     <header className="border-b border-slate-100 bg-white">
       <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-5">
