@@ -51,7 +51,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
             <p className="mt-1 text-sm font-semibold text-slate-600">{plan === "pro" ? "Produtos ilimitados liberados para sua loja." : `${totalProducts || 0} de ${productLimit} produtos usados.`}</p>
           </div>
         </div>
-        {plan === "free" && <span className={`rounded-full px-4 py-2 text-sm font-black ${reachedProductLimit ? "bg-amber-600 text-white" : "bg-white text-brand"}`}>{reachedProductLimit ? "Upgrade PRO em breve" : `${Math.max(0, (productLimit || 0) - (totalProducts || 0))} vagas restantes`}</span>}
+        {plan === "free" && <Link href="/dashboard/planos" className={`rounded-full px-4 py-2 text-sm font-black ${reachedProductLimit ? "bg-amber-600 text-white" : "bg-white text-brand"}`}>{reachedProductLimit ? "Ver plano PRO" : `${Math.max(0, (productLimit || 0) - (totalProducts || 0))} vagas restantes`}</Link>}
       </div>
     </section>
 

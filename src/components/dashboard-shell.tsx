@@ -1,10 +1,10 @@
 import Link from "next/link";
-import { BarChart3, CircleUserRound, ExternalLink, Home, LayoutGrid, LogOut, Package, Palette, Settings, ShieldCheck, ShoppingCart, Users } from "lucide-react";
+import { BarChart3, CircleUserRound, CreditCard, ExternalLink, Home, LayoutGrid, LogOut, Package, Palette, Settings, ShieldCheck, ShoppingCart, Users } from "lucide-react";
 import { Brand } from "@/components/brand";
 import { logout } from "@/app/dashboard/actions";
 
 const items = [
-  ["Visao geral", "/dashboard", Home], ["Produtos", "/dashboard/produtos", Package], ["Categorias", "/dashboard/categorias", LayoutGrid], ["Pedidos", "/dashboard/pedidos", ShoppingCart], ["Clientes", "/dashboard/clientes", Users], ["Relatorios", "/dashboard/relatorios", BarChart3],
+  ["Visao geral", "/dashboard", Home], ["Produtos", "/dashboard/produtos", Package], ["Categorias", "/dashboard/categorias", LayoutGrid], ["Pedidos", "/dashboard/pedidos", ShoppingCart], ["Clientes", "/dashboard/clientes", Users], ["Relatorios", "/dashboard/relatorios", BarChart3], ["Planos", "/dashboard/planos", CreditCard],
 ] as const;
 
 export function DashboardShell({ children, storeSlug, isAdmin }: { children: React.ReactNode; storeSlug?: string; isAdmin?: boolean }) {
