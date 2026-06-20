@@ -19,7 +19,7 @@ O projeto foi pensado para pequenos empreendedores criarem uma loja independente
 3. Preencha:
    - `NEXT_PUBLIC_SUPABASE_URL`
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-   - `NEXT_PUBLIC_SITE_URL` opcional, usado como referencia de ambiente
+   - `NEXT_PUBLIC_SITE_URL` usado por metadata, robots e sitemap
 4. Execute as migracoes em ordem no SQL Editor do Supabase:
    - `202606150001_initial_schema.sql`
    - `202606150002_public_checkout.sql`
@@ -52,6 +52,7 @@ npm run dev
 - Carrinho e checkout via WhatsApp.
 - Link da loja e QR Code para download.
 - Personalizacao de logo, banner, cores, fonte e SEO.
+- `robots.txt` e `sitemap.xml` dinamicos para landing, lojas publicadas e produtos ativos.
 - Painel admin global para usuario com role `admin`.
 - Plano Free com limite de 20 produtos e estrutura PRO preparada.
 
