@@ -10,6 +10,7 @@ import { formatCurrency } from "@/lib/utils";
 
 type ProductImage = { id: string; url: string; is_primary: boolean; position: number };
 type ProductOption = { id: string; name: string; position: number; product_option_values: { id: string; value: string; color_hex: string | null; position: number }[] };
+type ProductVariant = { id: string; name: string; sku: string | null; price_adjustment: number | string | null; stock: number; active: boolean };
 type RelatedProduct = { id: string; name: string; slug: string; price: number | string; promotional_price: number | string | null; product_images: ProductImage[] };
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string; productSlug: string }> }) {
@@ -33,7 +34,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   if (!store) notFound();
 
   const { data: product } = await supabase.from("products")
-    .select("id,store_id,category_id,name,slug,description,price,promotional_price,stock,sku,weight,product_images(id,url,is_primary,position),product_options(id,name,position,product_option_values(id,value,color_hex,position))")
+    .select("id,store_id,category_id,name,slug,description,price,promotional_price,stock,sku,weight,product_images(id,url,is_primary,position),product_options(id,name,position,product_option_values(id,value,color_hex,position)),product_variants(id,name,sku,price_adjustment,stock,active)")
     .eq("store_id", store.id)
     .eq("slug", productSlug)
     .eq("active", true)
@@ -42,6 +43,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
   const images = [...(product.product_images || [])].sort((a, b) => Number(b.is_primary) - Number(a.is_primary) || a.position - b.position) as ProductImage[];
   const options = [...(product.product_options || [])].sort((a, b) => a.position - b.position).map(option => ({ ...option, product_option_values: [...(option.product_option_values || [])].sort((a, b) => a.position - b.position) })) as ProductOption[];
+  const variants = [...(product.product_variants || [])].filter(variant => variant.active).sort((a, b) => a.name.localeCompare(b.name)) as ProductVariant[];
   const { data: related } = await supabase.from("products").select("id,name,slug,price,promotional_price,product_images(id,url,is_primary,position)").eq("store_id", store.id).eq("active", true).neq("id", product.id).limit(4);
   const price = Number(product.promotional_price || product.price);
   const schema = {
@@ -95,7 +97,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             <p className="text-xs font-black uppercase tracking-widest" style={{ color: store.primary_color }}>Produto</p>
             <h2 className="font-display mt-3 text-4xl font-extrabold leading-tight">{product.name}</h2>
             <div className="mt-4 flex flex-wrap items-center gap-3 text-sm font-bold text-slate-500">
-              <span className="rounded-full bg-slate-100 px-3 py-1">{product.stock > 0 ? `${product.stock} em estoque` : "Sem estoque"}</span>
+              <span className="rounded-full bg-slate-100 px-3 py-1">{variants.length ? `${variants.reduce((sum, variant) => sum + Number(variant.stock || 0), 0)} em variantes` : product.stock > 0 ? `${product.stock} em estoque` : "Sem estoque"}</span>
               {product.sku && <span className="rounded-full bg-slate-100 px-3 py-1">SKU {product.sku}</span>}
               {product.weight && <span className="rounded-full bg-slate-100 px-3 py-1">{product.weight} kg</span>}
             </div>
@@ -104,7 +106,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             </div>
           </section>
 
-          <ProductBuyBox storeId={store.id} whatsapp={store.whatsapp} color={store.primary_color} product={product} options={options} />
+          <ProductBuyBox storeId={store.id} whatsapp={store.whatsapp} color={store.primary_color} product={product} options={options} variants={variants} />
         </div>
       </div>
 

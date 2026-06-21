@@ -64,6 +64,7 @@ export async function createProduct(formData: FormData) {
   const { data: product, error } = await supabase.from("products").insert({ store_id: store.id, category_id: formData.get("category_id") || null, name, slug, description: String(formData.get("description") || ""), price, promotional_price: formData.get("promotional_price") ? Number(String(formData.get("promotional_price")).replace(",", ".")) : null, stock: Number(formData.get("stock") || 0), sku: String(formData.get("sku") || ""), internal_code: String(formData.get("internal_code") || ""), weight: formData.get("weight") ? Number(String(formData.get("weight")).replace(",", ".")) : null, active: formData.get("active") === "on" }).select("id").single();
   if (error) throw new Error(error.message);
   await syncProductOptions(supabase, product.id, formData);
+  await syncProductVariants(supabase, product.id, formData);
   await uploadProductImages(supabase, product.id, formData.getAll("images"));
   revalidatePath("/dashboard/produtos"); redirect("/dashboard/produtos");
 }
@@ -74,6 +75,7 @@ export async function updateProduct(formData: FormData) {
   const { error } = await supabase.from("products").update({ category_id: formData.get("category_id") || null, name: String(formData.get("name")), description: String(formData.get("description") || ""), price: Number(String(formData.get("price")).replace(",", ".")), promotional_price: formData.get("promotional_price") ? Number(String(formData.get("promotional_price")).replace(",", ".")) : null, stock: Number(formData.get("stock") || 0), sku: String(formData.get("sku") || ""), internal_code: String(formData.get("internal_code") || ""), weight: formData.get("weight") ? Number(String(formData.get("weight")).replace(",", ".")) : null, active: formData.get("active") === "on", updated_at: new Date().toISOString() }).eq("id", id);
   if (error) throw new Error(error.message);
   await syncProductOptions(supabase, id, formData);
+  await syncProductVariants(supabase, id, formData);
   await uploadProductImages(supabase, id, formData.getAll("images"));
   revalidatePath("/dashboard/produtos"); revalidatePath(`/dashboard/produtos/${id}/editar`); redirect("/dashboard/produtos");
 }
@@ -115,6 +117,28 @@ function normalizeHexColor(value?: string) {
   if (!value) return null;
   const color = value.trim();
   return /^#[0-9a-fA-F]{6}$/.test(color) ? color : null;
+}
+
+async function syncProductVariants(supabase: NonNullable<Awaited<ReturnType<typeof createClient>>>, productId: string, formData: FormData) {
+  const names = formData.getAll("variant_names").map(value => String(value).trim());
+  const stocks = formData.getAll("variant_stocks").map(value => String(value).trim());
+  const adjustments = formData.getAll("variant_price_adjustments").map(value => String(value).trim());
+  const skus = formData.getAll("variant_skus").map(value => String(value).trim());
+  const variants = names.map((name, index) => ({
+    product_id: productId,
+    name,
+    sku: skus[index] || null,
+    price_adjustment: adjustments[index] ? Number(adjustments[index].replace(",", ".")) : 0,
+    stock: stocks[index] ? Math.max(0, Number(stocks[index])) : 0,
+    active: formData.get(`variant_active_${index}`) === "on",
+    option_values: {},
+  })).filter(variant => variant.name);
+
+  await supabase.from("product_variants").delete().eq("product_id", productId);
+  if (!variants.length) return;
+
+  const { error } = await supabase.from("product_variants").insert(variants);
+  if (error) throw new Error(error.message);
 }
 
 async function uploadProductImages(supabase: NonNullable<Awaited<ReturnType<typeof createClient>>>, productId: string, values: FormDataEntryValue[]) {

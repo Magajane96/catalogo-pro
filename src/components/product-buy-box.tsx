@@ -19,11 +19,22 @@ type Option = {
   product_option_values: { id: string; value: string; color_hex: string | null }[];
 };
 
-export function ProductBuyBox({ storeId, whatsapp, color, product, options }: { storeId: string; whatsapp: string; color: string; product: Product; options: Option[] }) {
+type Variant = {
+  id: string;
+  name: string;
+  sku: string | null;
+  price_adjustment: number | string | null;
+  stock: number;
+};
+
+export function ProductBuyBox({ storeId, whatsapp, color, product, options, variants }: { storeId: string; whatsapp: string; color: string; product: Product; options: Option[]; variants: Variant[] }) {
   const [quantity, setQuantity] = useState(1);
   const [loading, setLoading] = useState(false);
-  const unitPrice = Number(product.promotional_price || product.price);
-  const availableStock = Math.max(0, Number(product.stock || 0));
+  const [selectedVariantId, setSelectedVariantId] = useState(variants.find(variant => Number(variant.stock || 0) > 0)?.id || variants[0]?.id || "");
+  const selectedVariant = variants.find(variant => variant.id === selectedVariantId);
+  const basePrice = Number(product.promotional_price || product.price);
+  const unitPrice = basePrice + Number(selectedVariant?.price_adjustment || 0);
+  const availableStock = Math.max(0, Number(selectedVariant ? selectedVariant.stock : product.stock || 0));
   const total = useMemo(() => unitPrice * quantity, [unitPrice, quantity]);
 
   async function finish(event: React.FormEvent<HTMLFormElement>) {
@@ -31,8 +42,13 @@ export function ProductBuyBox({ storeId, whatsapp, color, product, options }: { 
     setLoading(true);
     const form = new FormData(event.currentTarget);
     const selectedOptions = options.map(option => `${option.name}: ${form.get(`option_${option.id}`) || "Nao informado"}`);
-    const variantName = selectedOptions.length ? selectedOptions.join(" | ") : null;
+    const variantName = selectedVariant?.name || (selectedOptions.length ? selectedOptions.join(" | ") : null);
     const notes = String(form.get("notes") || "").trim();
+    if (variants.length && !selectedVariant) {
+      toast.error("Escolha uma variante disponivel.");
+      setLoading(false);
+      return;
+    }
     try {
       const response = await fetch("/api/orders", {
         method: "POST",
@@ -40,12 +56,12 @@ export function ProductBuyBox({ storeId, whatsapp, color, product, options }: { 
         body: JSON.stringify({
           storeId,
           customer: { name: form.get("name"), phone: form.get("phone"), email: form.get("email"), notes },
-          items: [{ product_id: product.id, quantity, variant_name: variantName }],
+          items: [{ product_id: product.id, variant_id: selectedVariant?.id, quantity, variant_name: variantName }],
         }),
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error);
-      const variations = selectedOptions.length ? `\nVariacoes:\n${selectedOptions.map(item => `- ${item}`).join("\n")}` : "";
+      const variations = variantName ? `\nVariacao: ${variantName}` : selectedOptions.length ? `\nVariacoes:\n${selectedOptions.map(item => `- ${item}`).join("\n")}` : "";
       const notesText = notes ? `\nObservacoes: ${notes}` : "";
       const message = `Ola! Gostaria de realizar o pedido #${result.order_number}:\n\nProduto: ${product.name}${variations}\nQuantidade: ${quantity}\nValor: ${formatCurrency(total)}\n\nCliente: ${form.get("name")}\nTelefone: ${form.get("phone")}${notesText}\nTotal: ${formatCurrency(result.total)}`;
       window.open(`https://wa.me/${whatsapp.replace(/\D/g, "")}?text=${encodeURIComponent(message)}`, "_blank");
@@ -77,6 +93,25 @@ export function ProductBuyBox({ storeId, whatsapp, color, product, options }: { 
           </label>)}
         </div>
       </fieldset>)}
+      {variants.length ? <fieldset>
+        <legend className="mb-2 text-sm font-extrabold">Variante com estoque</legend>
+        <div className="grid gap-2">
+          {variants.map(variant => {
+            const variantPrice = basePrice + Number(variant.price_adjustment || 0);
+            const soldOut = Number(variant.stock || 0) <= 0;
+            return <label key={variant.id} className={`cursor-pointer rounded-2xl border p-4 ${soldOut ? "opacity-50" : ""}`}>
+              <input required type="radio" name="variant_id" value={variant.id} checked={selectedVariantId === variant.id} disabled={soldOut} onChange={() => { setSelectedVariantId(variant.id); setQuantity(1); }} className="peer sr-only" />
+              <span className="flex items-center justify-between gap-3 text-sm">
+                <span>
+                  <strong className="block">{variant.name}</strong>
+                  <span className="text-xs font-bold text-slate-400">{soldOut ? "Sem estoque" : `${variant.stock} em estoque`}{variant.sku ? ` - SKU ${variant.sku}` : ""}</span>
+                </span>
+                <strong style={{ color }}>{formatCurrency(variantPrice)}</strong>
+              </span>
+            </label>;
+          })}
+        </div>
+      </fieldset> : null}
       <div>
         <span className="mb-2 block text-sm font-extrabold">Quantidade</span>
         <div className="flex h-12 w-36 items-center justify-between rounded-xl border border-slate-200 px-3">

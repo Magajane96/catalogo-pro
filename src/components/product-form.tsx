@@ -24,6 +24,7 @@ type Product = {
   active: boolean;
   product_images: { id: string; url: string; storage_path: string | null; is_primary: boolean; position: number }[];
   product_options?: ProductOption[];
+  product_variants?: { id: string; name: string; sku: string | null; price_adjustment: number | null; stock: number; active: boolean }[];
 };
 
 const variationPlaceholders = [
@@ -36,6 +37,7 @@ export function ProductForm({ categories, product }: { categories: Category[]; p
   const editing = Boolean(product);
   const input = "h-12 w-full rounded-xl border border-slate-200 bg-white px-4 outline-none transition focus:border-brand focus:ring-4 focus:ring-emerald-100";
   const options = [...(product?.product_options || [])].sort((a, b) => a.position - b.position);
+  const variants = product?.product_variants || [];
 
   return <div className="mx-auto max-w-5xl">
     <Link href="/dashboard/produtos" className="mb-5 inline-flex items-center gap-2 text-sm font-bold text-slate-500"><ArrowLeft size={17} />Voltar para produtos</Link>
@@ -106,6 +108,44 @@ export function ProductForm({ categories, product }: { categories: Category[]; p
                   <span className="mb-2 block text-sm font-bold">Cores em HEX, opcional</span>
                   <input name="option_colors" defaultValue={values.map(value => value.color_hex || "").join(", ")} className={input} placeholder={placeholder.colors || "#ef4444, #2563eb"} />
                 </label>
+              </div>;
+            })}
+          </div>
+        </section>
+
+        <section className="rounded-2xl border border-slate-200 bg-white p-6">
+          <div>
+            <h3 className="font-display text-lg font-extrabold">Estoque por variante</h3>
+            <p className="mt-1 text-sm text-slate-500">Use linhas como Vermelho / P ou Azul / GG quando cada combinacao tiver estoque ou preco diferente.</p>
+          </div>
+          <div className="mt-5 space-y-4">
+            {Array.from({ length: Math.max(4, variants.length + 1) }, (_, index) => {
+              const variant = variants[index];
+              return <div key={variant?.id || index} className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
+                <div className="grid gap-4 md:grid-cols-[1fr_140px_140px]">
+                  <label>
+                    <span className="mb-2 block text-sm font-bold">Nome da variante</span>
+                    <input name="variant_names" defaultValue={variant?.name || ""} className={input} placeholder="Ex: Vermelho / P" />
+                  </label>
+                  <label>
+                    <span className="mb-2 block text-sm font-bold">Estoque</span>
+                    <input name="variant_stocks" type="number" min="0" defaultValue={variant?.stock ?? ""} className={input} placeholder="0" />
+                  </label>
+                  <label>
+                    <span className="mb-2 block text-sm font-bold">Ajuste de preco</span>
+                    <input name="variant_price_adjustments" inputMode="decimal" defaultValue={variant?.price_adjustment || ""} className={input} placeholder="Ex: 10,00" />
+                  </label>
+                </div>
+                <div className="mt-4 grid gap-4 sm:grid-cols-[1fr_160px]">
+                  <label>
+                    <span className="mb-2 block text-sm font-bold">SKU da variante</span>
+                    <input name="variant_skus" defaultValue={variant?.sku || ""} className={input} placeholder="Codigo especifico" />
+                  </label>
+                  <label className="flex items-center gap-3 rounded-xl bg-white px-4 py-3 text-sm font-bold">
+                    <input name={`variant_active_${index}`} type="checkbox" defaultChecked={variant?.active ?? true} className="size-5 accent-emerald-600" />
+                    Ativa
+                  </label>
+                </div>
               </div>;
             })}
           </div>
