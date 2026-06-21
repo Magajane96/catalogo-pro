@@ -8,10 +8,12 @@ import { StoreVisitTracker } from "@/components/store-visit-tracker";
 
 export async function generateMetadata({params}:{params:Promise<{slug:string}>}) {
   const {slug}=await params; const supabase=await createClient();
-  const {data:store}=supabase?await supabase.from("stores").select("name,description,logo_url,seo_title,seo_description").eq("slug",slug).eq("published",true).maybeSingle():{data:null};
+  const {data:store}=supabase?await supabase.from("stores").select("name,description,logo_url,banner_url,seo_title,seo_description").eq("slug",slug).eq("published",true).maybeSingle():{data:null};
   const title=store?.seo_title||store?.name||"Loja";
-  const description=store?.seo_description||store?.description||"Catalogo online";
-  return {title,description,openGraph:{title,description,images:store?.logo_url?[store.logo_url]:[]}};
+  const description=store?.seo_description||store?.description||"Catalogo online com pedido direto pelo WhatsApp.";
+  const image=store?.banner_url||store?.logo_url;
+  const url=siteUrl(`/loja/${slug}`);
+  return {title,description,alternates:{canonical:url},openGraph:{title,description,url,type:"website",images:image?[{url:image,alt:store?.name||"Loja"}]:[]},twitter:{card:"summary_large_image",title,description,images:image?[image]:[]}};
 }
 
 export default async function StorePage({params}:{params:Promise<{slug:string}>}) {

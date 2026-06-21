@@ -12,16 +12,25 @@ type ProductImage = { id: string; url: string; is_primary: boolean; position: nu
 type ProductOption = { id: string; name: string; position: number; product_option_values: { id: string; value: string; color_hex: string | null; position: number }[] };
 type ProductVariant = { id: string; name: string; sku: string | null; price_adjustment: number | string | null; stock: number; active: boolean };
 type RelatedProduct = { id: string; name: string; slug: string; price: number | string; promotional_price: number | string | null; product_images: ProductImage[] };
+type MetadataProduct = { stock: number; product_variants?: { stock: number; active: boolean }[] };
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string; productSlug: string }> }) {
   const { slug, productSlug } = await params;
   const supabase = await createClient();
-  const { data: product } = supabase ? await supabase.from("products").select("name,description,product_images(url,is_primary)").eq("slug", productSlug).eq("active", true).maybeSingle() : { data: null };
+  const { data: store } = supabase ? await supabase.from("stores").select("id,name").eq("slug", slug).eq("published", true).maybeSingle() : { data: null };
+  const { data: product } = supabase && store ? await supabase.from("products").select("name,description,price,promotional_price,stock,product_images(url,is_primary),product_variants(stock,active)").eq("store_id", store.id).eq("slug", productSlug).eq("active", true).maybeSingle() : { data: null };
   const image = product?.product_images?.find(item => item.is_primary) || product?.product_images?.[0];
+  const price = product ? Number(product.promotional_price || product.price) : 0;
+  const stock = product ? getProductStock(product) : 0;
+  const title = product && store ? `${product.name} | ${store.name}` : "Produto";
+  const description = product ? `${product.description || "Produto disponivel para pedido pelo WhatsApp."} ${price ? `A partir de ${formatCurrency(price)}.` : ""} ${stock > 0 ? "Disponivel em estoque." : "Produto sem estoque no momento."}` : "Produto do catalogo online";
+  const url = siteUrl(`/loja/${slug}/produto/${productSlug}`);
   return {
-    title: product ? `${product.name} | ${slug}` : "Produto",
-    description: product?.description || "Produto do catalogo online",
-    openGraph: { title: product?.name || "Produto", description: product?.description || "Produto do catalogo online", images: image?.url ? [image.url] : [] },
+    title,
+    description,
+    alternates: { canonical: url },
+    openGraph: { title, description, url, type: "website", images: image?.url ? [{ url: image.url, alt: product?.name || "Produto" }] : [] },
+    twitter: { card: "summary_large_image", title, description, images: image?.url ? [image.url] : [] },
   };
 }
 
@@ -46,6 +55,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const variants = [...(product.product_variants || [])].filter(variant => variant.active).sort((a, b) => a.name.localeCompare(b.name)) as ProductVariant[];
   const { data: related } = await supabase.from("products").select("id,name,slug,price,promotional_price,product_images(id,url,is_primary,position)").eq("store_id", store.id).eq("active", true).neq("id", product.id).limit(4);
   const price = Number(product.promotional_price || product.price);
+  const stock = variants.length ? variants.reduce((sum, variant) => sum + Number(variant.stock || 0), 0) : Number(product.stock || 0);
   const schema = {
     "@context": "https://schema.org",
     "@type": "Product",
@@ -59,7 +69,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       url: siteUrl(`/loja/${store.slug}/produto/${product.slug}`),
       priceCurrency: "BRL",
       price,
-      availability: product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+      availability: stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
       seller: { "@type": "Store", name: store.name },
     },
   };
@@ -127,4 +137,10 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       </section> : null}
     </section>
   </main>;
+}
+
+function getProductStock(product: MetadataProduct) {
+  const variants = (product.product_variants || []).filter(variant => variant.active);
+  if (variants.length) return variants.reduce((total, variant) => total + Number(variant.stock || 0), 0);
+  return Number(product.stock || 0);
 }
