@@ -20,10 +20,18 @@ const statusLabels: Record<string, string> = {
   cancelled: "Cancelado",
 };
 
-export default async function CustomersPage({ searchParams }: { searchParams: Promise<{ q?: string; sort?: string }> }) {
+const segments = [
+  { value: "all", label: "Todos" },
+  { value: "buyers", label: "Com pedidos" },
+  { value: "contacts", label: "Sem pedidos" },
+  { value: "vip", label: "VIP" },
+];
+
+export default async function CustomersPage({ searchParams }: { searchParams: Promise<{ q?: string; sort?: string; segment?: string }> }) {
   const filters = await searchParams;
   const search = String(filters.q || "").trim();
   const sort = filters.sort === "spent" || filters.sort === "orders" ? filters.sort : "recent";
+  const segment = segments.some(item => item.value === filters.segment) ? String(filters.segment) : "all";
   const supabase = await createClient();
 
   let query = supabase
@@ -33,9 +41,12 @@ export default async function CustomersPage({ searchParams }: { searchParams: Pr
   if (query && search) query = query.or(`name.ilike.%${search}%,phone.ilike.%${search}%,email.ilike.%${search}%`);
 
   const { data: customers } = query ? await query : { data: [] };
-  const customerRows = sortCustomers((customers || []) as Customer[], sort);
+  const allCustomerRows = (customers || []) as Customer[];
+  const vipThreshold = calculateVipThreshold(allCustomerRows);
+  const customerRows = sortCustomers(filterCustomersBySegment(allCustomerRows, segment, vipThreshold), sort);
   const totalSpent = customerRows.reduce((sum, customer) => sum + customerTotal(customer), 0);
   const withOrders = customerRows.filter(customer => customer.orders.length > 0).length;
+  const vipCount = allCustomerRows.filter(customer => isVipCustomer(customer, vipThreshold)).length;
 
   return <div className="mx-auto max-w-6xl">
     <div>
@@ -44,17 +55,21 @@ export default async function CustomersPage({ searchParams }: { searchParams: Pr
       <p className="mt-2 text-slate-500">Contatos cadastrados automaticamente a partir dos pedidos.</p>
     </div>
 
-    <div className="mt-7 grid gap-3 sm:grid-cols-3">
+    <div className="mt-7 grid gap-3 sm:grid-cols-4">
       <SummaryCard label="Clientes encontrados" value={customerRows.length} />
       <SummaryCard label="Com pedidos" value={withOrders} />
+      <SummaryCard label="Clientes VIP" value={vipCount} />
       <SummaryCard label="Total comprado" value={formatCurrency(totalSpent)} />
     </div>
 
-    <form className="mt-5 grid gap-3 rounded-2xl border border-slate-200 bg-white p-4 md:grid-cols-[1fr_220px_auto]">
+    <form className="mt-5 grid gap-3 rounded-2xl border border-slate-200 bg-white p-4 lg:grid-cols-[1fr_180px_220px_auto]">
       <label className="relative">
         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
         <input name="q" defaultValue={search} placeholder="Buscar por nome, telefone ou e-mail" className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-11 pr-4 text-sm font-semibold outline-none focus:border-brand" />
       </label>
+      <select name="segment" defaultValue={segment} className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm font-bold">
+        {segments.map(item => <option key={item.value} value={item.value}>{item.label}</option>)}
+      </select>
       <select name="sort" defaultValue={sort} className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm font-bold">
         <option value="recent">Mais recentes</option>
         <option value="spent">Maior compra total</option>
@@ -74,6 +89,7 @@ export default async function CustomersPage({ searchParams }: { searchParams: Pr
         const spent = customerTotal(customer);
         const lastOrder = latestOrderDate(customer);
         const recentOrders = latestOrders(customer);
+        const vip = isVipCustomer(customer, vipThreshold);
         const message = `Ola, ${customer.name}! Tudo bem? Aqui e da loja. Podemos continuar seu atendimento por aqui.`;
         return <article key={customer.id} className="rounded-2xl border border-slate-200 bg-white p-5">
           <div className="flex items-start justify-between gap-4">
@@ -84,7 +100,7 @@ export default async function CustomersPage({ searchParams }: { searchParams: Pr
                 <p className="text-xs text-slate-400">Cliente desde {formatDate(customer.created_at)}</p>
               </div>
             </div>
-            <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold">{customer.orders.length} pedidos</span>
+            <span className={`rounded-full px-3 py-1 text-xs font-bold ${vip ? "bg-emerald-50 text-brand" : "bg-slate-100 text-slate-600"}`}>{vip ? "VIP" : `${customer.orders.length} pedidos`}</span>
           </div>
 
           <div className="mt-5 space-y-2 text-sm text-slate-500">
@@ -143,8 +159,25 @@ function sortCustomers(customers: Customer[], sort: string) {
   });
 }
 
+function filterCustomersBySegment(customers: Customer[], segment: string, vipThreshold: number) {
+  if (segment === "buyers") return customers.filter(customer => customer.orders.length > 0);
+  if (segment === "contacts") return customers.filter(customer => customer.orders.length === 0);
+  if (segment === "vip") return customers.filter(customer => isVipCustomer(customer, vipThreshold));
+  return customers;
+}
+
 function customerTotal(customer: Customer) {
   return customer.orders.reduce((total, order) => total + Number(order.total), 0);
+}
+
+function calculateVipThreshold(customers: Customer[]) {
+  const paidTotals = customers.map(customerTotal).filter(total => total > 0).sort((a, b) => b - a);
+  if (!paidTotals.length) return Number.POSITIVE_INFINITY;
+  return paidTotals[Math.min(4, paidTotals.length - 1)];
+}
+
+function isVipCustomer(customer: Customer, threshold: number) {
+  return customerTotal(customer) > 0 && customerTotal(customer) >= threshold;
 }
 
 function latestOrderDate(customer: Customer) {
