@@ -7,11 +7,16 @@ type Order = {
   total: number | string;
   status: string;
   created_at: string;
-  order_items?: { product_name: string; quantity: number; total: number | string }[];
+  order_items?: { product_name: string; variant_name: string | null; variant_sku?: string | null; quantity: number; total: number | string }[];
 };
 
 type Visit = { visited_at: string };
 type Customer = { created_at: string };
+type ProductStock = {
+  id: string;
+  stock: number;
+  product_variants: { stock: number; active: boolean }[];
+};
 
 const periods = [
   { value: "7", label: "7 dias" },
@@ -38,15 +43,15 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
     { data: previousVisits },
     { data: customers },
     { count: activeProducts },
-    { count: lowStockProducts },
+    { data: stockProducts },
   ] = await Promise.all([
-    supabase.from("orders").select("id,total,status,created_at,order_items(product_name,quantity,total)").gte("created_at", from).order("created_at", { ascending: true }),
+    supabase.from("orders").select("id,total,status,created_at,order_items(product_name,variant_name,variant_sku,quantity,total)").gte("created_at", from).order("created_at", { ascending: true }),
     supabase.from("orders").select("id,total,status,created_at").gte("created_at", previousFrom).lt("created_at", previousTo),
     supabase.from("store_visits").select("visited_at").gte("visited_at", from),
     supabase.from("store_visits").select("visited_at").gte("visited_at", previousFrom).lt("visited_at", previousTo),
     supabase.from("customers").select("created_at").gte("created_at", from),
     supabase.from("products").select("id", { count: "exact", head: true }).eq("active", true),
-    supabase.from("products").select("id", { count: "exact", head: true }).eq("active", true).lte("stock", 5),
+    supabase.from("products").select("id,stock,product_variants(stock,active)").eq("active", true),
   ]);
 
   const safeOrders = (orders || []) as Order[];
@@ -63,6 +68,10 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
   const maxDaily = Math.max(...daily.map(day => Math.max(day.orders, day.visits, day.customers)), 1);
   const statusRows = buildStatusRows(safeOrders);
   const topProducts = buildTopProducts(safeOrders);
+  const lowStockProducts = ((stockProducts || []) as ProductStock[]).filter(product => {
+    const stock = getEffectiveStock(product);
+    return stock <= 5;
+  }).length;
   const periodLabel = `${period} dias`;
 
   const cards = [
@@ -128,7 +137,7 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
         <h3 className="font-display text-lg font-extrabold">Resumo operacional</h3>
         <div className="mt-5 space-y-3">
           <SummaryRow icon={Package} label="Produtos publicados" value={activeProducts || 0} />
-          <SummaryRow icon={Package} label="Estoque baixo" value={lowStockProducts || 0} />
+          <SummaryRow icon={Package} label="Estoque baixo" value={lowStockProducts} />
           <SummaryRow icon={Users} label="Novos clientes" value={safeCustomers.length} />
           <SummaryRow icon={Eye} label="Visitas registradas" value={safeVisits.length} />
         </div>
@@ -147,9 +156,12 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
     <section className="mt-6 rounded-2xl border border-slate-200 bg-white p-6">
       <h3 className="font-display text-lg font-extrabold">Produtos mais vendidos</h3>
       <div className="mt-5 overflow-hidden rounded-2xl border border-slate-100">
-        {topProducts.length ? topProducts.map((product, index) => <div key={product.name} className="grid grid-cols-[44px_1fr_90px_130px] items-center gap-3 border-b border-slate-100 px-4 py-3 text-sm last:border-0">
+        {topProducts.length ? topProducts.map((product, index) => <div key={product.key} className="grid grid-cols-[44px_1fr_90px_130px] items-center gap-3 border-b border-slate-100 px-4 py-3 text-sm last:border-0">
           <span className="grid size-9 place-items-center rounded-xl bg-emerald-50 font-extrabold text-brand">{index + 1}</span>
-          <span className="font-extrabold">{product.name}</span>
+          <span>
+            <span className="block font-extrabold">{product.name}</span>
+            {(product.variantName || product.variantSku) && <span className="mt-1 block text-xs font-bold text-slate-400">{[product.variantName, product.variantSku ? `SKU ${product.variantSku}` : ""].filter(Boolean).join(" - ")}</span>}
+          </span>
           <span className="text-right font-bold text-slate-500">{product.quantity} un.</span>
           <span className="text-right font-extrabold text-brand">{formatCurrency(product.total)}</span>
         </div>) : <div className="grid min-h-40 place-items-center text-center text-slate-400">
@@ -198,14 +210,28 @@ function buildStatusRows(orders: Order[]) {
 }
 
 function buildTopProducts(orders: Order[]) {
-  const products = new Map<string, { name: string; quantity: number; total: number }>();
+  const products = new Map<string, { key: string; name: string; variantName: string | null; variantSku: string | null; quantity: number; total: number }>();
   orders.flatMap(order => order.order_items || []).forEach(item => {
-    const current = products.get(item.product_name) || { name: item.product_name, quantity: 0, total: 0 };
+    const key = [item.product_name, item.variant_name || "", item.variant_sku || ""].join("|");
+    const current = products.get(key) || {
+      key,
+      name: item.product_name,
+      variantName: item.variant_name || null,
+      variantSku: item.variant_sku || null,
+      quantity: 0,
+      total: 0,
+    };
     current.quantity += Number(item.quantity);
     current.total += Number(item.total);
-    products.set(item.product_name, current);
+    products.set(key, current);
   });
   return Array.from(products.values()).sort((a, b) => b.quantity - a.quantity).slice(0, 8);
+}
+
+function getEffectiveStock(product: ProductStock) {
+  const activeVariants = (product.product_variants || []).filter(variant => variant.active);
+  if (activeVariants.length) return activeVariants.reduce((total, variant) => total + Number(variant.stock || 0), 0);
+  return Number(product.stock || 0);
 }
 
 function sumRevenue(orders: Order[]) {
