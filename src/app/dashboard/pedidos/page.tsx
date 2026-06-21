@@ -29,11 +29,12 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
       : `customer_name.ilike.%${search}%,customer_phone.ilike.%${search}%`;
     query = query.or(searchFilter);
   }
-  const { data: orders } = query ? await query : { data: [] };
-  const { data: store } = supabase ? await supabase
-    .from("stores")
-    .select("whatsapp")
-    .maybeSingle() : { data: null };
+  const [{ data: orders }, { data: allOrders }, { data: store }] = query && supabase ? await Promise.all([
+    query,
+    supabase.from("orders").select("status,total,created_at"),
+    supabase.from("stores").select("whatsapp").maybeSingle(),
+  ]) : [{ data: [] }, { data: [] }, { data: null }];
+  const summary = buildOrderSummary((allOrders || []) as { status: string; total: number | string; created_at: string }[]);
 
   return <div className="mx-auto max-w-6xl">
     <div>
@@ -53,6 +54,13 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
       </select>
       <button className="h-11 rounded-xl bg-brand px-5 text-sm font-extrabold text-white">Filtrar</button>
     </form>
+
+    <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <SummaryCard label="Pedidos totais" value={summary.totalOrders} />
+      <SummaryCard label="Pedidos novos" value={summary.newOrders} tone="bg-blue-50 text-blue-700" />
+      <SummaryCard label="Em andamento" value={summary.openOrders} tone="bg-amber-50 text-amber-700" />
+      <SummaryCard label="Faturamento" value={formatCurrency(summary.revenue)} tone="bg-emerald-50 text-brand" />
+    </div>
 
     {!orders?.length ? <div className="mt-8 grid min-h-96 place-items-center rounded-3xl border border-dashed border-slate-300 bg-white text-center">
       <div>
@@ -119,6 +127,24 @@ function formatDateTime(value: string) {
 function normalizeBrazilPhone(value: string) {
   const digits = value.replace(/\D/g, "");
   return digits.startsWith("55") ? digits : `55${digits}`;
+}
+
+function SummaryCard({ label, value, tone = "bg-slate-100 text-slate-700" }: { label: string; value: number | string; tone?: string }) {
+  return <div className="rounded-2xl border border-slate-200 bg-white p-5">
+    <p className="text-xs font-black uppercase text-slate-400">{label}</p>
+    <p className={`mt-3 inline-flex rounded-xl px-3 py-1 font-display text-2xl font-extrabold ${tone}`}>{value}</p>
+  </div>;
+}
+
+function buildOrderSummary(orders: { status: string; total: number | string; created_at: string }[]) {
+  return {
+    totalOrders: orders.length,
+    newOrders: orders.filter(order => order.status === "new").length,
+    openOrders: orders.filter(order => ["new", "in_progress", "picking"].includes(order.status)).length,
+    revenue: orders
+      .filter(order => order.status !== "cancelled")
+      .reduce((sum, order) => sum + Number(order.total), 0),
+  };
 }
 
 function buildCustomerWhatsAppMessage(order: {
