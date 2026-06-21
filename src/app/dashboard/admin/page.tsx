@@ -14,6 +14,15 @@ type StoreRow = {
 };
 type ProfileRow = { plan: string };
 type SubscriptionRow = { status: string; plan: string; current_period_end: string | null };
+type RecentSubscriptionRow = {
+  id: string;
+  status: string;
+  plan: string;
+  provider: string;
+  current_period_end: string | null;
+  created_at: string;
+  profiles: { name: string; plan: string }[] | { name: string; plan: string } | null;
+};
 
 export default async function AdminPage() {
   const supabase = await createClient();
@@ -22,7 +31,7 @@ export default async function AdminPage() {
   const { data: profile } = await supabase.from("profiles").select("role").maybeSingle();
   if (profile?.role !== "admin") notFound();
 
-  const [{ count: stores }, { count: users }, { count: products }, { data: orders }, { data: recentStores }, { data: profiles }, { data: subscriptions }] = await Promise.all([
+  const [{ count: stores }, { count: users }, { count: products }, { data: orders }, { data: recentStores }, { data: profiles }, { data: subscriptions }, { data: recentSubscriptions }] = await Promise.all([
     supabase.from("stores").select("id", { count: "exact", head: true }),
     supabase.from("profiles").select("id", { count: "exact", head: true }),
     supabase.from("products").select("id", { count: "exact", head: true }),
@@ -30,6 +39,7 @@ export default async function AdminPage() {
     supabase.from("stores").select("id,name,slug,category,published,created_at,profiles(name,plan)").order("created_at", { ascending: false }).limit(8),
     supabase.from("profiles").select("plan"),
     supabase.from("subscriptions").select("status,plan,current_period_end"),
+    supabase.from("subscriptions").select("id,status,plan,provider,current_period_end,created_at,profiles(name,plan)").order("created_at", { ascending: false }).limit(6),
   ]);
 
   const revenue = (orders || []).reduce((sum, order) => sum + Number(order.total), 0);
@@ -38,6 +48,10 @@ export default async function AdminPage() {
   const storesList = ((recentStores || []) as StoreRow[]).map(store => ({
     ...store,
     owner: Array.isArray(store.profiles) ? store.profiles[0] : store.profiles,
+  }));
+  const subscriptionRows = ((recentSubscriptions || []) as RecentSubscriptionRow[]).map(subscription => ({
+    ...subscription,
+    owner: Array.isArray(subscription.profiles) ? subscription.profiles[0] : subscription.profiles,
   }));
   const cards = [
     ["Total de lojas", stores || 0, Store, "bg-emerald-50 text-brand"],
@@ -108,6 +122,35 @@ export default async function AdminPage() {
         </div>
       </section>
     </div>
+
+    <section className="mt-6 rounded-2xl border border-slate-200 bg-white p-6">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <h3 className="font-display text-lg font-extrabold">Assinaturas recentes</h3>
+          <p className="mt-1 text-sm text-slate-500">Acompanhe contas PRO, pendencias e vencimentos.</p>
+        </div>
+        <CreditCard className="text-slate-400" />
+      </div>
+      <div className="mt-5 overflow-hidden rounded-2xl border border-slate-100">
+        {subscriptionRows.length ? subscriptionRows.map(subscription => {
+          const status = subscriptionStatus(subscription);
+          return <div key={subscription.id} className="grid gap-3 border-b border-slate-100 p-4 last:border-0 sm:grid-cols-[1fr_110px_130px_140px] sm:items-center">
+            <div>
+              <p className="font-extrabold">{subscription.owner?.name || "Usuario sem nome"}</p>
+              <p className="mt-1 text-xs font-bold text-slate-400">{subscription.provider} - criada em {formatDate(subscription.created_at)}</p>
+            </div>
+            <span className="text-sm font-bold text-slate-500">{subscription.plan === "pro" ? "PRO" : subscription.plan}</span>
+            <span className={`rounded-full px-3 py-1 text-center text-xs font-black ${status.className}`}>{status.label}</span>
+            <span className="text-sm font-bold text-slate-500">{subscription.current_period_end ? `Ate ${formatDate(subscription.current_period_end)}` : "Sem vencimento"}</span>
+          </div>;
+        }) : <div className="grid min-h-32 place-items-center text-center text-slate-400">
+          <div>
+            <CreditCard className="mx-auto mb-3" />
+            <p className="font-bold">Nenhuma assinatura registrada ainda.</p>
+          </div>
+        </div>}
+      </div>
+    </section>
   </div>;
 }
 
@@ -135,6 +178,23 @@ function buildSubscriptionSummary(subscriptions: SubscriptionRow[]) {
       needsAttention: summary.needsAttention + (needsAttention ? 1 : 0),
     };
   }, { active: 0, needsAttention: 0 });
+}
+
+function subscriptionStatus(subscription: SubscriptionRow) {
+  const active = subscription.plan === "pro" && ["trialing", "active"].includes(subscription.status) && (!subscription.current_period_end || new Date(subscription.current_period_end) > new Date());
+  if (active) return { label: subscription.status === "trialing" ? "Teste" : "Ativa", className: "bg-emerald-50 text-brand" };
+  const labels: Record<string, string> = {
+    pending: "Pendente",
+    past_due: "Atrasada",
+    paused: "Pausada",
+    cancelled: "Cancelada",
+    expired: "Expirada",
+  };
+  return { label: labels[subscription.status] || subscription.status, className: "bg-amber-50 text-amber-700" };
+}
+
+function formatDate(value: string) {
+  return new Date(value).toLocaleDateString("pt-BR");
 }
 
 function SetupRequired() {
