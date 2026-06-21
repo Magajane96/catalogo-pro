@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { Package, ShieldCheck, ShoppingBag, Store, Users } from "lucide-react";
+import { CreditCard, Package, ShieldCheck, ShoppingBag, Sparkles, Store, Users } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { formatCurrency } from "@/lib/utils";
 
@@ -12,6 +12,8 @@ type StoreRow = {
   created_at: string;
   profiles: { name: string; plan: string }[] | { name: string; plan: string } | null;
 };
+type ProfileRow = { plan: string };
+type SubscriptionRow = { status: string; plan: string; current_period_end: string | null };
 
 export default async function AdminPage() {
   const supabase = await createClient();
@@ -20,15 +22,19 @@ export default async function AdminPage() {
   const { data: profile } = await supabase.from("profiles").select("role").maybeSingle();
   if (profile?.role !== "admin") notFound();
 
-  const [{ count: stores }, { count: users }, { count: products }, { data: orders }, { data: recentStores }] = await Promise.all([
+  const [{ count: stores }, { count: users }, { count: products }, { data: orders }, { data: recentStores }, { data: profiles }, { data: subscriptions }] = await Promise.all([
     supabase.from("stores").select("id", { count: "exact", head: true }),
     supabase.from("profiles").select("id", { count: "exact", head: true }),
     supabase.from("products").select("id", { count: "exact", head: true }),
     supabase.from("orders").select("id,total"),
     supabase.from("stores").select("id,name,slug,category,published,created_at,profiles(name,plan)").order("created_at", { ascending: false }).limit(8),
+    supabase.from("profiles").select("plan"),
+    supabase.from("subscriptions").select("status,plan,current_period_end"),
   ]);
 
   const revenue = (orders || []).reduce((sum, order) => sum + Number(order.total), 0);
+  const planSummary = buildPlanSummary((profiles || []) as ProfileRow[]);
+  const subscriptionSummary = buildSubscriptionSummary((subscriptions || []) as SubscriptionRow[]);
   const storesList = ((recentStores || []) as StoreRow[]).map(store => ({
     ...store,
     owner: Array.isArray(store.profiles) ? store.profiles[0] : store.profiles,
@@ -67,8 +73,19 @@ export default async function AdminPage() {
         <p className="font-display mt-5 text-4xl font-extrabold text-brand">{formatCurrency(revenue)}</p>
         <p className="mt-2 text-sm text-slate-500">Soma dos pedidos registrados em todas as lojas.</p>
         <div className="mt-6 rounded-2xl bg-slate-50 p-5">
-          <p className="text-xs font-black uppercase tracking-widest text-slate-400">Assinaturas</p>
-          <p className="mt-3 text-sm font-bold text-slate-600">A estrutura de planos Free e PRO ja existe no banco. A integracao com pagamentos pode entrar na proxima etapa.</p>
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-xs font-black uppercase tracking-widest text-slate-400">Assinaturas</p>
+              <p className="mt-2 text-sm font-bold text-slate-600">Planos e assinaturas monitorados pelo banco.</p>
+            </div>
+            <CreditCard className="text-slate-400" />
+          </div>
+          <div className="mt-5 grid gap-3 sm:grid-cols-2">
+            <MiniMetric icon={Users} label="Free" value={planSummary.free} />
+            <MiniMetric icon={Sparkles} label="PRO" value={planSummary.pro} />
+            <MiniMetric icon={CreditCard} label="Ativas" value={subscriptionSummary.active} />
+            <MiniMetric icon={ShieldCheck} label="Pendentes" value={subscriptionSummary.needsAttention} />
+          </div>
         </div>
       </section>
 
@@ -92,6 +109,32 @@ export default async function AdminPage() {
       </section>
     </div>
   </div>;
+}
+
+function MiniMetric({ icon: Icon, label, value }: { icon: typeof Users; label: string; value: number }) {
+  return <div className="rounded-xl bg-white p-4">
+    <Icon className="text-slate-400" size={18} />
+    <p className="mt-3 text-xs font-black uppercase text-slate-400">{label}</p>
+    <p className="mt-1 font-display text-2xl font-extrabold">{value}</p>
+  </div>;
+}
+
+function buildPlanSummary(profiles: ProfileRow[]) {
+  return profiles.reduce((summary, profile) => ({
+    free: summary.free + (profile.plan === "pro" ? 0 : 1),
+    pro: summary.pro + (profile.plan === "pro" ? 1 : 0),
+  }), { free: 0, pro: 0 });
+}
+
+function buildSubscriptionSummary(subscriptions: SubscriptionRow[]) {
+  return subscriptions.reduce((summary, subscription) => {
+    const active = subscription.plan === "pro" && ["trialing", "active"].includes(subscription.status) && (!subscription.current_period_end || new Date(subscription.current_period_end) > new Date());
+    const needsAttention = ["pending", "past_due", "paused", "cancelled", "expired"].includes(subscription.status);
+    return {
+      active: summary.active + (active ? 1 : 0),
+      needsAttention: summary.needsAttention + (needsAttention ? 1 : 0),
+    };
+  }, { active: 0, needsAttention: 0 });
 }
 
 function SetupRequired() {
