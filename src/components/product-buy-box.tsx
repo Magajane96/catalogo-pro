@@ -32,20 +32,22 @@ export function ProductBuyBox({ storeId, whatsapp, color, product, options }: { 
     const form = new FormData(event.currentTarget);
     const selectedOptions = options.map(option => `${option.name}: ${form.get(`option_${option.id}`) || "Nao informado"}`);
     const variantName = selectedOptions.length ? selectedOptions.join(" | ") : null;
+    const notes = String(form.get("notes") || "").trim();
     try {
       const response = await fetch("/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           storeId,
-          customer: { name: form.get("name"), phone: form.get("phone"), email: form.get("email") },
+          customer: { name: form.get("name"), phone: form.get("phone"), email: form.get("email"), notes },
           items: [{ product_id: product.id, quantity, variant_name: variantName }],
         }),
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error);
       const variations = selectedOptions.length ? `\nVariacoes:\n${selectedOptions.map(item => `- ${item}`).join("\n")}` : "";
-      const message = `Ola! Gostaria de realizar o pedido #${result.order_number}:\n\nProduto: ${product.name}${variations}\nQuantidade: ${quantity}\nValor: ${formatCurrency(total)}\n\nCliente: ${form.get("name")}\nTelefone: ${form.get("phone")}\nTotal: ${formatCurrency(result.total)}`;
+      const notesText = notes ? `\nObservacoes: ${notes}` : "";
+      const message = `Ola! Gostaria de realizar o pedido #${result.order_number}:\n\nProduto: ${product.name}${variations}\nQuantidade: ${quantity}\nValor: ${formatCurrency(total)}\n\nCliente: ${form.get("name")}\nTelefone: ${form.get("phone")}${notesText}\nTotal: ${formatCurrency(result.total)}`;
       window.open(`https://wa.me/${whatsapp.replace(/\D/g, "")}?text=${encodeURIComponent(message)}`, "_blank");
       void markOrderWhatsAppSent(result.id);
       toast.success("Pedido registrado com sucesso!");
@@ -87,6 +89,7 @@ export function ProductBuyBox({ storeId, whatsapp, color, product, options }: { 
         <input name="name" required minLength={2} placeholder="Seu nome" className="h-12 rounded-xl border border-slate-200 px-4 outline-none focus:border-brand" />
         <input name="phone" required minLength={8} placeholder="Seu WhatsApp" className="h-12 rounded-xl border border-slate-200 px-4 outline-none focus:border-brand" />
         <input name="email" type="email" placeholder="E-mail (opcional)" className="h-12 rounded-xl border border-slate-200 px-4 outline-none focus:border-brand" />
+        <textarea name="notes" rows={3} maxLength={500} placeholder="Observacoes do pedido (opcional)" className="rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-brand" />
       </div>
       <div className="flex items-center justify-between rounded-2xl bg-slate-50 p-4 font-extrabold">
         <span>Total</span>

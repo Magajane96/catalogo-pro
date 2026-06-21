@@ -19,7 +19,7 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
   const supabase = await createClient();
   let query = supabase
     ?.from("orders")
-    .select("id,order_number,status,total,customer_name,customer_phone,created_at,whatsapp_sent_at,stock_restored_at,order_items(id,product_name,variant_name,quantity,unit_price)")
+    .select("id,order_number,status,total,customer_name,customer_phone,notes,created_at,whatsapp_sent_at,stock_restored_at,order_items(id,product_name,variant_name,quantity,unit_price)")
     .order("created_at", { ascending: false });
   if (query && selectedStatus !== "all") query = query.eq("status", selectedStatus);
   if (query && search) {
@@ -76,6 +76,7 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
               {order.stock_restored_at && <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700"><PackageCheck size={13} />Estoque restaurado</span>}
             </div>
             <p className="mt-1 text-sm text-slate-500">{order.customer_name} - {order.customer_phone}</p>
+            {order.notes && <p className="mt-2 rounded-xl bg-slate-50 p-3 text-sm font-semibold text-slate-600">Observacoes: {order.notes}</p>}
             {order.whatsapp_sent_at && <p className="mt-1 text-xs font-bold text-slate-400">Enviado em {formatDateTime(order.whatsapp_sent_at)}</p>}
             {order.stock_restored_at && <p className="mt-1 text-xs font-bold text-slate-400">Estoque restaurado em {formatDateTime(order.stock_restored_at)}</p>}
           </div>
@@ -123,11 +124,13 @@ function normalizeBrazilPhone(value: string) {
 function buildCustomerWhatsAppMessage(order: {
   order_number: number;
   total: number | string;
+  notes: string | null;
   order_items: { product_name: string; variant_name: string | null; quantity: number; unit_price: number | string }[];
 }) {
   const lines = order.order_items.map(item => {
     const variation = item.variant_name ? ` (${item.variant_name})` : "";
     return `- ${item.quantity}x ${item.product_name}${variation}: ${formatCurrency(Number(item.unit_price) * item.quantity)}`;
   });
-  return `Ola! Sobre seu pedido #${order.order_number}:\n\n${lines.join("\n")}\n\nTotal: ${formatCurrency(order.total)}\n\nPodemos continuar por aqui.`;
+  const notes = order.notes ? `\n\nObservacoes: ${order.notes}` : "";
+  return `Ola! Sobre seu pedido #${order.order_number}:\n\n${lines.join("\n")}${notes}\n\nTotal: ${formatCurrency(order.total)}\n\nPodemos continuar por aqui.`;
 }

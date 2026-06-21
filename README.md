@@ -29,6 +29,7 @@ O projeto foi pensado para pequenos empreendedores criarem uma loja independente
    - `202606150006_mark_whatsapp_sent.sql`
    - `202606150007_order_status_stock_restore.sql`
    - `202606150008_realtime_dashboard.sql`
+   - `202606150009_order_notes.sql`
 5. No Supabase Auth, adicione estas URLs permitidas:
    - `http://localhost:3000/auth/callback`
    - `http://localhost:3000/auth/callback?next=/auth/redefinir-senha`
@@ -49,6 +50,7 @@ npm run dev
 - CRUD de categorias.
 - Clientes cadastrados automaticamente com historico de pedidos.
 - Pedidos com status, itens, variacoes, baixa de estoque e restauracao em cancelamento.
+- Observacoes do cliente salvas no pedido e enviadas ao WhatsApp.
 - Loja publica em `/loja/[slug]`.
 - Pagina individual de produto.
 - Carrinho e checkout via WhatsApp.
