@@ -1,21 +1,24 @@
-import { Check, CreditCard, Package, Palette, QrCode, Sparkles, Store } from "lucide-react";
+import { CalendarClock, Check, CreditCard, Package, Palette, QrCode, Sparkles, Store } from "lucide-react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function PlansPage() {
   const supabase = await createClient();
-  const [{ data: profile }, { count: products }, { count: categories }, { data: store }] = supabase ? await Promise.all([
+  const [{ data: profile }, { count: products }, { count: categories }, { data: store }, { data: subscription }] = supabase ? await Promise.all([
     supabase.from("profiles").select("plan").maybeSingle(),
     supabase.from("products").select("id", { count: "exact", head: true }),
     supabase.from("categories").select("id", { count: "exact", head: true }),
     supabase.from("stores").select("slug,primary_color,logo_url,banner_url,font_family").maybeSingle(),
-  ]) : [{ data: null }, { count: 0 }, { count: 0 }, { data: null }];
+    supabase.from("subscriptions").select("status,provider,current_period_end,cancel_at_period_end").order("created_at", { ascending: false }).limit(1).maybeSingle(),
+  ]) : [{ data: null }, { count: 0 }, { count: 0 }, { data: null }, { data: null }];
 
   const plan = profile?.plan === "pro" ? "pro" : "free";
   const productUsage = products || 0;
   const productLimit = 20;
-  const usagePercent = Math.min(100, (productUsage / productLimit) * 100);
+  const usagePercent = plan === "pro" ? 100 : Math.min(100, (productUsage / productLimit) * 100);
   const proReady = Boolean(store?.primary_color && store?.font_family && store?.slug);
+  const subscriptionStatus = getSubscriptionStatus(subscription?.status);
+  const periodEnd = subscription?.current_period_end ? new Date(subscription.current_period_end).toLocaleDateString("pt-BR") : null;
   const customizationItems = [
     { label: "Cores da marca", done: Boolean(store?.primary_color) },
     { label: "Fonte personalizada", done: Boolean(store?.font_family) },
@@ -75,9 +78,24 @@ export default async function PlansPage() {
           <div>
             <span className="rounded-full bg-emerald-400 px-3 py-1 text-[10px] font-black uppercase text-[#14261d]">Estrutura pronta</span>
             <h3 className="font-display mt-4 text-2xl font-extrabold">Plano PRO</h3>
-            <p className="mt-2 text-sm leading-6 text-white/60">A base do banco ja suporta planos. A integracao com pagamento pode entrar na etapa de comercializacao.</p>
+            <p className="mt-2 text-sm leading-6 text-white/60">A base do banco agora suporta assinaturas e sincroniza o plano do perfil automaticamente.</p>
           </div>
           <Sparkles className="text-emerald-400" />
+        </div>
+        <div className="mt-6 grid gap-3 rounded-2xl bg-white/[.06] p-4">
+          <div className="flex items-center justify-between gap-3 text-sm">
+            <span className="font-bold text-white/60">Status</span>
+            <span className="font-extrabold">{subscriptionStatus}</span>
+          </div>
+          <div className="flex items-center justify-between gap-3 text-sm">
+            <span className="font-bold text-white/60">Provedor</span>
+            <span className="font-extrabold">{subscription?.provider || "A definir"}</span>
+          </div>
+          <div className="flex items-center justify-between gap-3 text-sm">
+            <span className="font-bold text-white/60">Periodo</span>
+            <span className="inline-flex items-center gap-1 font-extrabold"><CalendarClock size={15} />{periodEnd || "Sem vencimento"}</span>
+          </div>
+          {subscription?.cancel_at_period_end && <p className="rounded-xl bg-amber-400/15 px-3 py-2 text-xs font-bold text-amber-100">Cancelamento agendado ao fim do periodo.</p>}
         </div>
         <div className="mt-7 grid gap-3">
           {["Produtos ilimitados", "Categorias ilimitadas", "Variantes ilimitadas", "QR Code e link da loja", "Personalizacao completa"].map(item => <p key={item} className="flex items-center gap-2 text-sm font-bold"><Check size={17} className="text-emerald-400" />{item}</p>)}
@@ -106,4 +124,17 @@ function UsageCard({ icon: Icon, label, value }: { icon: typeof Package; label: 
     <p className="mt-3 text-xs font-black uppercase text-slate-400">{label}</p>
     <p className="mt-1 font-extrabold">{value}</p>
   </div>;
+}
+
+function getSubscriptionStatus(status?: string) {
+  const labels: Record<string, string> = {
+    pending: "Pendente",
+    trialing: "Teste ativo",
+    active: "Ativa",
+    past_due: "Pagamento pendente",
+    paused: "Pausada",
+    cancelled: "Cancelada",
+    expired: "Expirada",
+  };
+  return status ? labels[status] || status : "Sem assinatura";
 }

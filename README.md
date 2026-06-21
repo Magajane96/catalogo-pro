@@ -30,6 +30,7 @@ O projeto foi pensado para pequenos empreendedores criarem uma loja independente
    - `202606150007_order_status_stock_restore.sql`
    - `202606150008_realtime_dashboard.sql`
    - `202606150009_order_notes.sql`
+   - `202606150010_subscriptions_foundation.sql`
 5. No Supabase Auth, adicione estas URLs permitidas:
    - `http://localhost:3000/auth/callback`
    - `http://localhost:3000/auth/callback?next=/auth/redefinir-senha`
@@ -58,7 +59,8 @@ npm run dev
 - Personalizacao de logo, banner, cores, fonte e SEO.
 - `robots.txt` e `sitemap.xml` dinamicos para landing, lojas publicadas e produtos ativos.
 - Painel admin global para usuario com role `admin`.
-- Plano Free com limite de 20 produtos e estrutura PRO preparada.
+- Plano Free com limite de 20 produtos.
+- Estrutura PRO preparada com tabela de assinaturas, status, periodo e sincronizacao automatica do plano do perfil.
 
 ## Deploy na Vercel
 
@@ -101,6 +103,17 @@ update public.profiles
 set role = 'admin'
 where id = 'UUID_DO_USUARIO';
 ```
+
+## Assinaturas futuras
+
+A migracao `202606150010_subscriptions_foundation.sql` cria a tabela `subscriptions` para receber dados de um provedor de pagamento no futuro.
+
+Status considerados PRO automaticamente:
+
+- `trialing`
+- `active`
+
+Quando uma assinatura PRO ativa e inserida, atualizada ou removida, o banco sincroniza `profiles.plan` para `pro` ou `free`. A integracao com Stripe, Mercado Pago ou outro provedor deve escrever nessa tabela usando ambiente seguro de servidor ou webhook com service role.
 
 ## Checklist antes de vender
 
