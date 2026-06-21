@@ -28,6 +28,7 @@ O projeto foi pensado para pequenos empreendedores criarem uma loja independente
    - `202606150005_auto_stock_decrement.sql`
    - `202606150006_mark_whatsapp_sent.sql`
    - `202606150007_order_status_stock_restore.sql`
+   - `202606150008_realtime_dashboard.sql`
 5. No Supabase Auth, adicione estas URLs permitidas:
    - `http://localhost:3000/auth/callback`
    - `http://localhost:3000/auth/callback?next=/auth/redefinir-senha`
@@ -43,6 +44,7 @@ npm run dev
 - Cadastro, login e recuperacao de senha por e-mail.
 - Onboarding de primeira loja.
 - Dashboard com indicadores, semana da loja, estoque baixo e atividades recentes.
+- Realtime no dashboard para novos pedidos e atividades da loja.
 - CRUD de produtos com imagens, galeria reordenavel, foto principal e variacoes.
 - CRUD de categorias.
 - Clientes cadastrados automaticamente com historico de pedidos.
