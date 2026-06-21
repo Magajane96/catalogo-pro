@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowLeft, ImagePlus, Save } from "lucide-react";
 import { createProduct, updateProduct } from "@/app/dashboard/actions";
 import { ProductImageManager } from "@/components/product-image-manager";
+import { ProductVariationBuilder } from "@/components/product-variation-builder";
 
 type Category = { id: string; name: string };
 type ProductOption = {
@@ -26,12 +27,6 @@ type Product = {
   product_options?: ProductOption[];
   product_variants?: { id: string; name: string; sku: string | null; price_adjustment: number | null; stock: number; active: boolean }[];
 };
-
-const variationPlaceholders = [
-  { name: "Cor", values: "Vermelho, Azul, Preto, Branco", colors: "#ef4444, #2563eb, #111827, #ffffff" },
-  { name: "Tamanho", values: "P, M, G, GG", colors: "" },
-  { name: "Modelo", values: "Classico, Premium", colors: "" },
-];
 
 export function ProductForm({ categories, product }: { categories: Category[]; product?: Product }) {
   const editing = Boolean(product);
@@ -84,72 +79,7 @@ export function ProductForm({ categories, product }: { categories: Category[]; p
           </label>
         </section>
 
-        <section className="rounded-2xl border border-slate-200 bg-white p-6">
-          <div>
-            <h3 className="font-display text-lg font-extrabold">Variacoes</h3>
-            <p className="mt-1 text-sm text-slate-500">Cadastre opcoes como Cor, Tamanho ou Modelo. Separe os valores por virgula.</p>
-          </div>
-          <div className="mt-5 space-y-5">
-            {variationPlaceholders.map((placeholder, index) => {
-              const option = options[index];
-              const values = option?.product_option_values?.sort((a, b) => a.position - b.position) || [];
-              return <div key={placeholder.name} className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
-                <div className="grid gap-4 sm:grid-cols-[180px_1fr]">
-                  <label>
-                    <span className="mb-2 block text-sm font-bold">Opcao {index + 1}</span>
-                    <input name="option_names" defaultValue={option?.name || ""} className={input} placeholder={placeholder.name} />
-                  </label>
-                  <label>
-                    <span className="mb-2 block text-sm font-bold">Valores</span>
-                    <input name="option_values" defaultValue={values.map(value => value.value).join(", ")} className={input} placeholder={placeholder.values} />
-                  </label>
-                </div>
-                <label className="mt-4 block">
-                  <span className="mb-2 block text-sm font-bold">Cores em HEX, opcional</span>
-                  <input name="option_colors" defaultValue={values.map(value => value.color_hex || "").join(", ")} className={input} placeholder={placeholder.colors || "#ef4444, #2563eb"} />
-                </label>
-              </div>;
-            })}
-          </div>
-        </section>
-
-        <section className="rounded-2xl border border-slate-200 bg-white p-6">
-          <div>
-            <h3 className="font-display text-lg font-extrabold">Estoque por variante</h3>
-            <p className="mt-1 text-sm text-slate-500">Use linhas como Vermelho / P ou Azul / GG quando cada combinacao tiver estoque ou preco diferente.</p>
-          </div>
-          <div className="mt-5 space-y-4">
-            {Array.from({ length: Math.max(4, variants.length + 1) }, (_, index) => {
-              const variant = variants[index];
-              return <div key={variant?.id || index} className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
-                <div className="grid gap-4 md:grid-cols-[1fr_140px_140px]">
-                  <label>
-                    <span className="mb-2 block text-sm font-bold">Nome da variante</span>
-                    <input name="variant_names" defaultValue={variant?.name || ""} className={input} placeholder="Ex: Vermelho / P" />
-                  </label>
-                  <label>
-                    <span className="mb-2 block text-sm font-bold">Estoque</span>
-                    <input name="variant_stocks" type="number" min="0" defaultValue={variant?.stock ?? ""} className={input} placeholder="0" />
-                  </label>
-                  <label>
-                    <span className="mb-2 block text-sm font-bold">Ajuste de preco</span>
-                    <input name="variant_price_adjustments" inputMode="decimal" defaultValue={variant?.price_adjustment || ""} className={input} placeholder="Ex: 10,00" />
-                  </label>
-                </div>
-                <div className="mt-4 grid gap-4 sm:grid-cols-[1fr_160px]">
-                  <label>
-                    <span className="mb-2 block text-sm font-bold">SKU da variante</span>
-                    <input name="variant_skus" defaultValue={variant?.sku || ""} className={input} placeholder="Codigo especifico" />
-                  </label>
-                  <label className="flex items-center gap-3 rounded-xl bg-white px-4 py-3 text-sm font-bold">
-                    <input name={`variant_active_${index}`} type="checkbox" defaultChecked={variant?.active ?? true} className="size-5 accent-emerald-600" />
-                    Ativa
-                  </label>
-                </div>
-              </div>;
-            })}
-          </div>
-        </section>
+        <ProductVariationBuilder initialOptions={options} initialVariants={variants} inputClass={input} />
       </div>
 
       <div className="space-y-6">
