@@ -1,4 +1,4 @@
-import { CheckCircle2, Clock, MessageCircle, PackageCheck, Search, ShoppingBag } from "lucide-react";
+import { CheckCircle2, Clock, Hash, Mail, MessageCircle, PackageCheck, Search, ShoppingBag } from "lucide-react";
 import { updateOrderStatus } from "@/app/dashboard/actions";
 import { createClient } from "@/lib/supabase/server";
 import { formatCurrency } from "@/lib/utils";
@@ -19,7 +19,7 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
   const supabase = await createClient();
   let query = supabase
     ?.from("orders")
-    .select("id,order_number,status,total,customer_name,customer_phone,notes,created_at,whatsapp_sent_at,stock_restored_at,order_items(id,product_name,variant_name,quantity,unit_price)")
+    .select("id,order_number,status,total,customer_name,customer_phone,customer_email,notes,created_at,whatsapp_sent_at,stock_restored_at,order_items(id,product_name,variant_name,variant_sku,quantity,unit_price)")
     .order("created_at", { ascending: false });
   if (query && selectedStatus !== "all") query = query.eq("status", selectedStatus);
   if (query && search) {
@@ -83,7 +83,10 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
               {order.whatsapp_sent_at ? <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700"><CheckCircle2 size={13} />WhatsApp enviado</span> : <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-3 py-1 text-xs font-bold text-amber-700"><MessageCircle size={13} />Aguardando WhatsApp</span>}
               {order.stock_restored_at && <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700"><PackageCheck size={13} />Estoque restaurado</span>}
             </div>
-            <p className="mt-1 text-sm text-slate-500">{order.customer_name} - {order.customer_phone}</p>
+            <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-slate-500">
+              <span>{order.customer_name} - {order.customer_phone}</span>
+              {order.customer_email && <span className="inline-flex items-center gap-1"><Mail size={14} />{order.customer_email}</span>}
+            </div>
             {order.notes && <p className="mt-2 rounded-xl bg-slate-50 p-3 text-sm font-semibold text-slate-600">Observacoes: {order.notes}</p>}
             {order.whatsapp_sent_at && <p className="mt-1 text-xs font-bold text-slate-400">Enviado em {formatDateTime(order.whatsapp_sent_at)}</p>}
             {order.stock_restored_at && <p className="mt-1 text-xs font-bold text-slate-400">Estoque restaurado em {formatDateTime(order.stock_restored_at)}</p>}
@@ -101,7 +104,10 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
           {order.order_items.map(item => <div key={item.id} className="flex justify-between gap-4 py-2 text-sm">
             <div>
               <span>{item.quantity}x {item.product_name}</span>
-              {item.variant_name && <p className="mt-1 text-xs font-bold text-slate-400">{item.variant_name}</p>}
+              {(item.variant_name || item.variant_sku) && <div className="mt-1 flex flex-wrap gap-2 text-xs font-bold text-slate-400">
+                {item.variant_name && <span>{item.variant_name}</span>}
+                {item.variant_sku && <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-slate-500"><Hash size={12} />{item.variant_sku}</span>}
+              </div>}
             </div>
             <span className="font-bold">{formatCurrency(item.unit_price * item.quantity)}</span>
           </div>)}
@@ -151,10 +157,10 @@ function buildCustomerWhatsAppMessage(order: {
   order_number: number;
   total: number | string;
   notes: string | null;
-  order_items: { product_name: string; variant_name: string | null; quantity: number; unit_price: number | string }[];
+  order_items: { product_name: string; variant_name: string | null; variant_sku?: string | null; quantity: number; unit_price: number | string }[];
 }) {
   const lines = order.order_items.map(item => {
-    const variation = item.variant_name ? ` (${item.variant_name})` : "";
+    const variation = item.variant_name || item.variant_sku ? ` (${[item.variant_name, item.variant_sku ? `SKU ${item.variant_sku}` : ""].filter(Boolean).join(" - ")})` : "";
     return `- ${item.quantity}x ${item.product_name}${variation}: ${formatCurrency(Number(item.unit_price) * item.quantity)}`;
   });
   const notes = order.notes ? `\n\nObservacoes: ${order.notes}` : "";

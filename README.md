@@ -32,6 +32,7 @@ O projeto foi pensado para pequenos empreendedores criarem uma loja independente
    - `202606150009_order_notes.sql`
    - `202606150010_subscriptions_foundation.sql`
    - `202606150011_variant_checkout.sql`
+   - `202606150012_order_variant_snapshot.sql`
 5. No Supabase Auth, adicione estas URLs permitidas:
    - `http://localhost:3000/auth/callback`
    - `http://localhost:3000/auth/callback?next=/auth/redefinir-senha`
@@ -51,7 +52,7 @@ npm run dev
 - CRUD de produtos com imagens, galeria reordenavel, foto principal, opcoes e estoque por variante.
 - CRUD de categorias.
 - Clientes cadastrados automaticamente com historico de pedidos.
-- Pedidos com status, itens, variacoes, baixa de estoque e restauracao em cancelamento.
+- Pedidos com status, itens, variacoes, SKU da variante, baixa de estoque e restauracao em cancelamento.
 - Observacoes do cliente salvas no pedido e enviadas ao WhatsApp.
 - Loja publica em `/loja/[slug]`.
 - Pagina individual de produto.
