@@ -33,6 +33,7 @@ O projeto foi pensado para pequenos empreendedores criarem uma loja independente
    - `202606150010_subscriptions_foundation.sql`
    - `202606150011_variant_checkout.sql`
    - `202606150012_order_variant_snapshot.sql`
+   - `202606150013_security_hardening.sql`
 5. No Supabase Auth, adicione estas URLs permitidas:
    - `http://localhost:3000/auth/callback`
    - `http://localhost:3000/auth/callback?next=/auth/redefinir-senha`
@@ -111,6 +112,8 @@ As politicas de Storage permitem leitura publica e escrita apenas pelo usuario a
 ## Seguranca
 
 Todas as entidades privadas usam Row Level Security. O acesso e vinculado ao `auth.uid()` do proprietario da loja. As politicas publicas permitem apenas leitura de lojas/produtos publicados e criacao controlada de visitas/pedidos.
+
+A migracao `202606150013_security_hardening.sql` remove insercao publica direta em `orders`; pedidos publicos devem passar pela funcao `create_public_order`, que valida cliente, itens, estoque e total. Ela tambem adiciona indices operacionais, limite de imagem principal por produto e constraints de integridade para cores, telefones, preco promocional e metadados.
 
 ## Admin global
 
