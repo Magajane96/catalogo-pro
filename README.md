@@ -71,15 +71,33 @@ npm run dev
    - `NEXT_PUBLIC_SUPABASE_URL`
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
    - `NEXT_PUBLIC_SITE_URL` com a URL de producao
-3. No Supabase Auth, adicione a URL de callback da Vercel:
+3. No Supabase Auth, adicione as URLs de callback da Vercel:
    - `https://seu-dominio.com/auth/callback`
    - `https://seu-dominio.com/auth/callback?next=/auth/redefinir-senha`
-4. Rode um build local antes do deploy:
+4. Confirme que as migracoes foram executadas em ordem no Supabase.
+5. Rode um build local antes do deploy:
 
 ```bash
 npm run lint
 npm run build
 ```
+
+## Checklist de producao
+
+Antes de vender para clientes reais, confirme:
+
+- Projeto Supabase criado em conta definitiva.
+- Todas as migracoes aplicadas em ordem.
+- Buckets `store-assets` e `product-images` criados pelas migracoes.
+- Redirect URLs do Supabase Auth configuradas para localhost e dominio final.
+- Variaveis `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` e `NEXT_PUBLIC_SITE_URL` configuradas na Vercel.
+- Dominio final usando HTTPS.
+- Usuario administrador criado em `profiles.role = 'admin'`.
+- Loja teste criada, publicada e com QR Code/link funcionando.
+- Produto com imagem, variante, estoque e SKU cadastrado.
+- Pedido teste finalizado pelo WhatsApp e aparecendo no painel.
+- Cancelamento de pedido testado para confirmar restauracao de estoque.
+- `npm run lint` e `npm run build` executados com sucesso.
 
 ## Storage no Supabase
 

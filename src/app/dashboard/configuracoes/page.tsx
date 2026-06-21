@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CheckCircle2, ExternalLink, Globe2, Save, Search, ShieldCheck } from "lucide-react";
+import { CheckCircle2, Cloud, ExternalLink, Globe2, Save, Search, ShieldCheck } from "lucide-react";
 import { headers } from "next/headers";
 import { updateStore } from "@/app/dashboard/actions";
 import { StoreShareCard } from "@/components/store-share-card";
@@ -22,7 +22,15 @@ export default async function SettingsPage() {
     { label: "Titulo SEO", done: Boolean((store.seo_title || store.name).trim()) },
     { label: "Descricao SEO", done: Boolean((store.seo_description || store.description)?.trim()) },
   ];
+  const deployChecklist = [
+    { label: "URL publica configurada", done: Boolean(process.env.NEXT_PUBLIC_SITE_URL?.trim()) },
+    { label: "Supabase URL configurada", done: Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL?.trim()) },
+    { label: "Supabase anon key configurada", done: Boolean(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim()) },
+    { label: "Dominio HTTPS em uso", done: protocol === "https" },
+    { label: "Loja publicada para indexacao", done: store.published },
+  ];
   const readyItems = checklist.filter(item => item.done).length;
+  const deployReadyItems = deployChecklist.filter(item => item.done).length;
 
   return <div className="mx-auto max-w-5xl">
     <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
@@ -106,6 +114,23 @@ export default async function SettingsPage() {
                 <span className={`rounded-full px-3 py-1 text-xs font-black ${item.done ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>{item.done ? "OK" : "Pendente"}</span>
               </div>)}
             </div>
+          </section>
+
+          <section className="rounded-2xl border border-slate-200 bg-white p-6">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <h3 className="font-display text-lg font-extrabold">Checklist de producao</h3>
+                <p className="mt-1 text-sm text-slate-500">{deployReadyItems} de {deployChecklist.length} itens prontos para deploy</p>
+              </div>
+              <span className="grid size-11 place-items-center rounded-xl bg-blue-50 text-blue-700"><Cloud size={20} /></span>
+            </div>
+            <div className="mt-5 space-y-2">
+              {deployChecklist.map(item => <div key={item.label} className="flex items-center justify-between rounded-xl bg-slate-50 px-4 py-3 text-sm">
+                <span className="font-bold text-slate-600">{item.label}</span>
+                <span className={`rounded-full px-3 py-1 text-xs font-black ${item.done ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>{item.done ? "OK" : "Pendente"}</span>
+              </div>)}
+            </div>
+            <p className="mt-4 rounded-xl bg-blue-50 p-3 text-xs font-bold leading-5 text-blue-800">Antes de vender, rode as migracoes no Supabase, configure os redirects de Auth e confirme `npm run lint` e `npm run build`.</p>
           </section>
 
           <section className="rounded-2xl border border-emerald-100 bg-emerald-50 p-6">
