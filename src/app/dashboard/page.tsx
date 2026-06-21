@@ -6,7 +6,12 @@ import { OnboardingForm } from "@/components/onboarding-form";
 type Order = { created_at: string };
 type Visit = { visited_at: string };
 type Activity = { id: string; title: string; type: string; created_at: string };
-type StockProduct = { id: string; name: string; stock: number };
+type StockProduct = {
+  id: string;
+  name: string;
+  stock: number;
+  product_variants: { stock: number; active: boolean }[];
+};
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -33,10 +38,19 @@ export default async function DashboardPage() {
     supabase.from("orders").select("created_at").gte("created_at", weekStart),
     supabase.from("store_visits").select("visited_at").gte("visited_at", weekStart),
     supabase.from("activities").select("id,title,type,created_at").order("created_at", { ascending: false }).limit(6),
-    supabase.from("products").select("id,name,stock").eq("active", true).lte("stock", 5).order("stock", { ascending: true }).limit(5),
+    supabase.from("products").select("id,name,stock,product_variants(stock,active)").eq("active", true).order("stock", { ascending: true }),
   ]);
 
-  const stockRows = (stockAlerts || []) as StockProduct[];
+  const stockRows = ((stockAlerts || []) as StockProduct[])
+    .map(product => ({
+      id: product.id,
+      name: product.name,
+      stock: getEffectiveStock(product),
+      variantCount: (product.product_variants || []).filter(variant => variant.active).length,
+    }))
+    .filter(product => product.stock <= 5)
+    .sort((a, b) => a.stock - b.stock)
+    .slice(0, 5);
   const metrics = [
     ["Produtos", products || 0, Package, "bg-violet-50 text-violet-600"],
     ["Pedidos", orders || 0, ShoppingBag, "bg-orange-50 text-orange-600"],
@@ -75,7 +89,7 @@ export default async function DashboardPage() {
           <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-white text-amber-600"><AlertTriangle size={21} /></span>
           <div>
             <h3 className="font-display text-lg font-extrabold">Atencao ao estoque</h3>
-            <p className="mt-1 text-sm font-semibold text-amber-800/70">Ha produtos publicados com 5 unidades ou menos.</p>
+            <p className="mt-1 text-sm font-semibold text-amber-800/70">Ha produtos publicados com 5 unidades ou menos, incluindo estoque em variantes.</p>
           </div>
         </div>
         <Link href="/dashboard/produtos?filter=low" className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-amber-600 px-4 text-sm font-extrabold text-white">
@@ -86,7 +100,7 @@ export default async function DashboardPage() {
         {stockRows.map(product => <Link key={product.id} href={`/dashboard/produtos/${product.id}/editar`} className="flex items-center justify-between rounded-xl bg-white px-4 py-3 text-sm">
           <span className="font-extrabold text-slate-700">{product.name}</span>
           <span className={`rounded-full px-3 py-1 text-xs font-black ${product.stock === 0 ? "bg-red-50 text-red-700" : "bg-amber-100 text-amber-700"}`}>
-            {product.stock === 0 ? "Sem estoque" : `${product.stock} un.`}
+            {product.stock === 0 ? "Sem estoque" : `${product.stock} un.${product.variantCount ? " em variantes" : ""}`}
           </span>
         </Link>)}
       </div>
@@ -159,6 +173,12 @@ function Bar({ value, max, className }: { value: number; max: number; className:
 
 function Legend({ color, label }: { color: string; label: string }) {
   return <span className="inline-flex items-center gap-2"><span className={`size-3 rounded-full ${color}`} />{label}</span>;
+}
+
+function getEffectiveStock(product: StockProduct) {
+  const activeVariants = (product.product_variants || []).filter(variant => variant.active);
+  if (activeVariants.length) return activeVariants.reduce((total, variant) => total + Number(variant.stock || 0), 0);
+  return Number(product.stock || 0);
 }
 
 function buildDailyReport(orders: Order[], visits: Visit[]) {
