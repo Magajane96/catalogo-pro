@@ -2,13 +2,21 @@ import { Mail, MessageCircle, Phone, Search, Users } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { formatCurrency } from "@/lib/utils";
 
+type OrderItem = {
+  id: string;
+  product_name: string;
+  variant_name: string | null;
+  variant_sku: string | null;
+  quantity: number;
+};
+
 type Customer = {
   id: string;
   name: string;
   phone: string;
   email: string | null;
   created_at: string;
-  orders: { id: string; order_number: number; status: string; total: number | string; created_at: string }[];
+  orders: { id: string; order_number: number; status: string; total: number | string; created_at: string; order_items: OrderItem[] }[];
 };
 
 const statusLabels: Record<string, string> = {
@@ -36,7 +44,7 @@ export default async function CustomersPage({ searchParams }: { searchParams: Pr
 
   let query = supabase
     ?.from("customers")
-    .select("id,name,phone,email,created_at,orders(id,order_number,status,total,created_at)")
+    .select("id,name,phone,email,created_at,orders(id,order_number,status,total,created_at,order_items(id,product_name,variant_name,variant_sku,quantity))")
     .order("created_at", { ascending: false });
   if (query && search) query = query.or(`name.ilike.%${search}%,phone.ilike.%${search}%,email.ilike.%${search}%`);
 
@@ -90,7 +98,10 @@ export default async function CustomersPage({ searchParams }: { searchParams: Pr
         const lastOrder = latestOrderDate(customer);
         const recentOrders = latestOrders(customer);
         const vip = isVipCustomer(customer, vipThreshold);
-        const message = `Ola, ${customer.name}! Tudo bem? Aqui e da loja. Podemos continuar seu atendimento por aqui.`;
+        const lastOrderSummary = recentOrders[0] ? summarizeOrderItems(recentOrders[0].order_items) : "";
+        const message = recentOrders[0]
+          ? `Ola, ${customer.name}! Tudo bem? Vi aqui seu pedido #${recentOrders[0].order_number}${lastOrderSummary ? ` com ${lastOrderSummary}` : ""}. Podemos continuar seu atendimento por aqui.`
+          : `Ola, ${customer.name}! Tudo bem? Aqui e da loja. Podemos continuar seu atendimento por aqui.`;
         return <article key={customer.id} className="rounded-2xl border border-slate-200 bg-white p-5">
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-center gap-3">
@@ -129,6 +140,12 @@ export default async function CustomersPage({ searchParams }: { searchParams: Pr
                 <div>
                   <p className="font-extrabold">Pedido #{order.order_number}</p>
                   <p className="mt-1 text-xs font-bold text-slate-400">{formatDate(order.created_at)} - {statusLabels[order.status] || order.status}</p>
+                  {order.order_items?.length ? <div className="mt-2 space-y-1">
+                    {order.order_items.slice(0, 2).map(item => <p key={item.id} className="text-xs font-bold text-slate-500">
+                      {item.quantity}x {item.product_name}{item.variant_name ? ` - ${item.variant_name}` : ""}{item.variant_sku ? ` - SKU ${item.variant_sku}` : ""}
+                    </p>)}
+                    {order.order_items.length > 2 && <p className="text-xs font-bold text-slate-400">+{order.order_items.length - 2} itens</p>}
+                  </div> : null}
                 </div>
                 <strong className="text-brand">{formatCurrency(order.total)}</strong>
               </div>) : <p className="rounded-xl bg-slate-50 p-4 text-sm font-bold text-slate-400">Nenhum pedido registrado para este cliente.</p>}
@@ -189,6 +206,15 @@ function latestOrderDate(customer: Customer) {
 
 function latestOrders(customer: Customer) {
   return [...customer.orders].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 3);
+}
+
+function summarizeOrderItems(items: OrderItem[]) {
+  if (!items.length) return "";
+  const first = items[0];
+  const variation = first.variant_name ? ` ${first.variant_name}` : "";
+  const sku = first.variant_sku ? ` SKU ${first.variant_sku}` : "";
+  const suffix = items.length > 1 ? ` e mais ${items.length - 1} item${items.length > 2 ? "s" : ""}` : "";
+  return `${first.product_name}${variation}${sku}${suffix}`;
 }
 
 function normalizeBrazilPhone(value: string) {
