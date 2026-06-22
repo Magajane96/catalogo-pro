@@ -38,6 +38,7 @@ O projeto foi pensado para pequenos empreendedores criarem uma loja independente
    - `202606150014_admin_manual_pro.sql`
    - `202606150015_admin_revoke_manual_pro.sql`
    - `202606150016_catalog_activity_events.sql`
+   - `202606150017_product_archiving.sql`
 5. No Supabase Auth, adicione estas URLs permitidas:
    - `http://localhost:3000/auth/callback`
    - `http://localhost:3000/auth/callback?next=/auth/redefinir-senha`

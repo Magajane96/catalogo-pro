@@ -37,7 +37,7 @@ export default async function DashboardPage() {
     supabase.from("orders").select("created_at,total,status").gte("created_at", weekStart),
     supabase.from("store_visits").select("visited_at").gte("visited_at", weekStart),
     supabase.from("activities").select("id,title,type,created_at").order("created_at", { ascending: false }).limit(6),
-    supabase.from("products").select("id,name,stock,product_variants(stock,active)").eq("active", true).order("stock", { ascending: true }),
+    supabase.from("products").select("id,name,stock,product_variants(stock,active)").eq("active", true).is("archived_at", null).order("stock", { ascending: true }),
   ]);
 
   const safeOrders = (weekOrders || []) as Order[];

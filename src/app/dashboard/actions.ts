@@ -256,7 +256,24 @@ export async function revokeManualPro(formData: FormData) {
 
 export async function deleteProduct(formData: FormData) {
   const supabase = await createClient(); if (!supabase) return;
-  await supabase.from("products").delete().eq("id", readRequiredUuid(formData, "id", "Produto"));
+  const id = readRequiredUuid(formData, "id", "Produto");
+  const { count } = await supabase.from("order_items").select("id", { count: "exact", head: true }).eq("product_id", id);
+  if (count) throw new Error("Este produto possui pedidos vinculados. Arquive para preservar o histórico.");
+  await supabase.from("products").delete().eq("id", id);
+  revalidatePath("/dashboard/produtos");
+}
+
+export async function archiveProduct(formData: FormData) {
+  const supabase = await createClient(); if (!supabase) return;
+  const id = readRequiredUuid(formData, "id", "Produto");
+  await supabase.from("products").update({ active: false, archived_at: new Date().toISOString(), updated_at: new Date().toISOString() }).eq("id", id);
+  revalidatePath("/dashboard/produtos");
+}
+
+export async function restoreProduct(formData: FormData) {
+  const supabase = await createClient(); if (!supabase) return;
+  const id = readRequiredUuid(formData, "id", "Produto");
+  await supabase.from("products").update({ archived_at: null, updated_at: new Date().toISOString() }).eq("id", id);
   revalidatePath("/dashboard/produtos");
 }
 

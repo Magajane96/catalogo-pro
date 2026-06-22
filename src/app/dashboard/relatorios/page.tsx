@@ -50,8 +50,8 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
     supabase.from("store_visits").select("visited_at").gte("visited_at", from),
     supabase.from("store_visits").select("visited_at").gte("visited_at", previousFrom).lt("visited_at", previousTo),
     supabase.from("customers").select("created_at").gte("created_at", from),
-    supabase.from("products").select("id", { count: "exact", head: true }).eq("active", true),
-    supabase.from("products").select("id,stock,product_variants(stock,active)").eq("active", true),
+    supabase.from("products").select("id", { count: "exact", head: true }).eq("active", true).is("archived_at", null),
+    supabase.from("products").select("id,stock,product_variants(stock,active)").eq("active", true).is("archived_at", null),
   ]);
 
   const safeOrders = (orders || []) as Order[];

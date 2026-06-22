@@ -18,7 +18,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug, productSlug } = await params;
   const supabase = await createClient();
   const { data: store } = supabase ? await supabase.from("stores").select("id,name").eq("slug", slug).eq("published", true).maybeSingle() : { data: null };
-  const { data: product } = supabase && store ? await supabase.from("products").select("name,description,price,promotional_price,stock,product_images(url,is_primary),product_variants(stock,active)").eq("store_id", store.id).eq("slug", productSlug).eq("active", true).maybeSingle() : { data: null };
+  const { data: product } = supabase && store ? await supabase.from("products").select("name,description,price,promotional_price,stock,product_images(url,is_primary),product_variants(stock,active)").eq("store_id", store.id).eq("slug", productSlug).eq("active", true).is("archived_at", null).maybeSingle() : { data: null };
   const image = product?.product_images?.find(item => item.is_primary) || product?.product_images?.[0];
   const price = product ? Number(product.promotional_price || product.price) : 0;
   const stock = product ? getProductStock(product) : 0;
@@ -47,13 +47,14 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     .eq("store_id", store.id)
     .eq("slug", productSlug)
     .eq("active", true)
+    .is("archived_at", null)
     .maybeSingle();
   if (!product) notFound();
 
   const images = [...(product.product_images || [])].sort((a, b) => Number(b.is_primary) - Number(a.is_primary) || a.position - b.position) as ProductImage[];
   const options = [...(product.product_options || [])].sort((a, b) => a.position - b.position).map(option => ({ ...option, product_option_values: [...(option.product_option_values || [])].sort((a, b) => a.position - b.position) })) as ProductOption[];
   const variants = [...(product.product_variants || [])].filter(variant => variant.active).sort((a, b) => a.name.localeCompare(b.name)) as ProductVariant[];
-  const { data: related } = await supabase.from("products").select("id,name,slug,price,promotional_price,product_images(id,url,is_primary,position)").eq("store_id", store.id).eq("active", true).neq("id", product.id).limit(4);
+  const { data: related } = await supabase.from("products").select("id,name,slug,price,promotional_price,product_images(id,url,is_primary,position)").eq("store_id", store.id).eq("active", true).is("archived_at", null).neq("id", product.id).limit(4);
   const price = Number(product.promotional_price || product.price);
   const stock = variants.length ? variants.reduce((sum, variant) => sum + Number(variant.stock || 0), 0) : Number(product.stock || 0);
   const schema = {

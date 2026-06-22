@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { ArrowLeft, Lock, Package } from "lucide-react";
 
-export default async function NewProductPage(){const supabase=await createClient();const [{data:categories},{data:profile},{count:products}]=supabase?await Promise.all([supabase.from("categories").select("id,name").eq("active",true).order("name"),supabase.from("profiles").select("plan").maybeSingle(),supabase.from("products").select("id",{count:"exact",head:true})]):[{data:[]},{data:null},{count:0}];const plan=profile?.plan==="pro"?"pro":"free";if(plan==="free"&&(products||0)>=20)return <ProductLimitReached used={products||0}/>;return <ProductForm categories={categories||[]}/>}
+export default async function NewProductPage(){const supabase=await createClient();const [{data:categories},{data:profile},{count:products}]=supabase?await Promise.all([supabase.from("categories").select("id,name").eq("active",true).order("name"),supabase.from("profiles").select("plan").maybeSingle(),supabase.from("products").select("id",{count:"exact",head:true}).is("archived_at",null)]):[{data:[]},{data:null},{count:0}];const plan=profile?.plan==="pro"?"pro":"free";if(plan==="free"&&(products||0)>=20)return <ProductLimitReached used={products||0}/>;return <ProductForm categories={categories||[]}/>}
 
 function ProductLimitReached({ used }: { used: number }) {
   return <div className="mx-auto max-w-2xl">

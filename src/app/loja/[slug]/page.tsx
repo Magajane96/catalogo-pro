@@ -24,7 +24,7 @@ export default async function StorePage({ params }: { params: Promise<{ slug: st
   const { data: store } = await supabase.from("stores").select("id,name,description,whatsapp,primary_color,secondary_color,font_family,logo_url,banner_url,category").eq("slug", slug).eq("published", true).maybeSingle();
   if (!store) notFound();
   const [{ data: products }, { data: categories }] = await Promise.all([
-    supabase.from("products").select("id,name,slug,price,promotional_price,stock,category_id,product_images(url,is_primary),product_variants(id,stock,active)").eq("store_id", store.id).eq("active", true).order("created_at", { ascending: false }),
+    supabase.from("products").select("id,name,slug,price,promotional_price,stock,category_id,product_images(url,is_primary),product_variants(id,stock,active)").eq("store_id", store.id).eq("active", true).is("archived_at", null).order("created_at", { ascending: false }),
     supabase.from("categories").select("id,name,color").eq("store_id", store.id).eq("active", true).order("position"),
   ]);
   const safeProducts = products || [];

@@ -39,6 +39,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       .from("products")
       .select("slug,updated_at,stores!inner(slug)")
       .eq("active", true)
+      .is("archived_at", null)
       .eq("stores.published", true),
   ]);
 

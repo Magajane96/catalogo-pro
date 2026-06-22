@@ -1,8 +1,8 @@
 ﻿import Link from "next/link";
 import Image from "next/image";
-import { AlertTriangle, Edit3, ImageIcon, Lock, Package, Plus, Search, Sparkles, Trash2, UploadCloud } from "lucide-react";
+import { AlertTriangle, Archive, Edit3, ImageIcon, Lock, Package, Plus, RotateCcw, Search, Sparkles, Trash2, UploadCloud } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import { deleteProduct } from "@/app/dashboard/actions";
+import { archiveProduct, deleteProduct, restoreProduct } from "@/app/dashboard/actions";
 import { sanitizeDashboardSearchTerm } from "@/lib/search";
 import { formatCurrency } from "@/lib/utils";
 
@@ -14,8 +14,10 @@ type ProductRow = {
   promotional_price: number | string | null;
   stock: number;
   active: boolean;
+  archived_at: string | null;
   product_images: { url: string; is_primary: boolean }[];
   product_variants: { id: string; name: string; sku: string | null; stock: number; active: boolean; price_adjustment: number | string | null }[];
+  order_items?: { count: number }[];
 };
 
 const stockFilters = [
@@ -24,6 +26,7 @@ const stockFilters = [
   { value: "draft", label: "Rascunhos" },
   { value: "low", label: "Estoque baixo" },
   { value: "out", label: "Sem estoque" },
+  { value: "archived", label: "Arquivados" },
 ];
 
 export default async function ProductsPage({ searchParams }: { searchParams: Promise<{ q?: string; filter?: string }> }) {
@@ -33,16 +36,18 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
   const supabase = await createClient();
   const [{ data: profile }, { count: totalProducts }] = supabase ? await Promise.all([
     supabase.from("profiles").select("plan").maybeSingle(),
-    supabase.from("products").select("id", { count: "exact", head: true }),
+    supabase.from("products").select("id", { count: "exact", head: true }).is("archived_at", null),
   ]) : [{ data: null }, { count: 0 }];
   const plan = profile?.plan === "pro" ? "pro" : "free";
   const productLimit = plan === "free" ? 20 : null;
   const reachedProductLimit = Boolean(productLimit && (totalProducts || 0) >= productLimit);
   let query = supabase
     ?.from("products")
-    .select("id,name,sku,price,promotional_price,stock,active,product_images(url,is_primary),product_variants(id,name,sku,stock,active,price_adjustment)")
+    .select("id,name,sku,price,promotional_price,stock,active,archived_at,product_images(url,is_primary),product_variants(id,name,sku,stock,active,price_adjustment),order_items(count)")
     .order("created_at", { ascending: false });
   if (query && search) query = query.or(`name.ilike.%${search}%,sku.ilike.%${search}%`);
+  if (query && selectedFilter === "archived") query = query.not("archived_at", "is", null);
+  if (query && selectedFilter !== "archived") query = query.is("archived_at", null);
   if (query && selectedFilter === "active") query = query.eq("active", true);
   if (query && selectedFilter === "draft") query = query.eq("active", false);
   const { data: products } = query ? await query : { data: [] };
@@ -61,7 +66,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
     return stock > 0 && stock <= 5;
   }).length;
   const outOfStock = allProductRows.filter(product => getEffectiveStock(product) === 0).length;
-  const published = productRows.filter(product => product.active).length;
+  const published = productRows.filter(product => product.active && !product.archived_at).length;
   const withVariants = allProductRows.filter(product => product.product_variants.length > 0).length;
 
   return <div className="mx-auto max-w-7xl">
@@ -105,10 +110,10 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
 
     {!productRows.length ? <div className="premium-card mt-8 grid min-h-96 place-items-center rounded-3xl p-8 text-center"><div><span className="mx-auto grid size-16 place-items-center rounded-2xl bg-emerald-50 text-brand"><UploadCloud size={30}/></span><h3 className="font-display mt-5 text-2xl font-extrabold">{search || selectedFilter !== "all" ? "Nenhum produto encontrado." : "Adicione seu primeiro produto."}</h3><p className="mx-auto mt-2 max-w-sm text-slate-500">{search || selectedFilter !== "all" ? "Ajuste a busca ou os filtros para ver mais produtos." : "Monte sua vitrine com fotos, preços e estoque para começar a vender pelo WhatsApp."}</p>{reachedProductLimit ? <span className="mt-6 inline-flex h-11 items-center gap-2 rounded-xl bg-slate-200 px-5 text-sm font-extrabold text-slate-500"><Lock size={18}/>Limite atingido</span> : <Link href="/dashboard/produtos/novo" className="mt-6 inline-flex h-11 items-center gap-2 rounded-xl bg-brand px-5 text-sm font-extrabold text-white shadow-lg shadow-emerald-700/20"><Plus size={18}/>Cadastrar produto</Link>}</div></div> : <div className="mt-8 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
       <div className="hidden grid-cols-[1fr_120px_140px_100px] gap-4 border-b border-slate-100 px-5 py-3 text-xs font-black uppercase text-slate-400 sm:grid"><span>Produto</span><span>Preço</span><span>Estoque</span><span>Ações</span></div>
-      {productRows.map(product=>{const image=product.product_images?.find(item=>item.is_primary)||product.product_images?.[0];const stockStatus=getStockStatus(getEffectiveStock(product), product.product_variants.length);return <div key={product.id} className="grid grid-cols-[1fr_auto] items-center gap-4 border-b border-slate-100 px-5 py-4 last:border-0 sm:grid-cols-[1fr_120px_140px_100px]">
-        <div className="flex items-center gap-3"><span className="grid size-12 shrink-0 place-items-center overflow-hidden rounded-xl bg-slate-100 text-slate-400">{image?<Image src={image.url} alt={product.name} width={48} height={48} className="size-full object-cover"/>:<ImageIcon/>}</span><div><p className="font-extrabold">{product.name}</p><p className="text-xs font-bold text-slate-400">{product.active ? "Publicado" : "Rascunho"}{product.sku ? ` | SKU ${product.sku}` : ""}</p>{product.product_variants.length ? <p className="mt-1 text-xs font-bold text-violet-500">{product.product_variants.length} variantes ativas</p> : null}</div></div>
+      {productRows.map(product=>{const image=product.product_images?.find(item=>item.is_primary)||product.product_images?.[0];const stockStatus=getStockStatus(getEffectiveStock(product), product.product_variants.length);const orderCount=productOrders(product);return <div key={product.id} className="grid grid-cols-[1fr_auto] items-center gap-4 border-b border-slate-100 px-5 py-4 last:border-0 sm:grid-cols-[1fr_120px_140px_100px]">
+        <div className="flex items-center gap-3"><span className="grid size-12 shrink-0 place-items-center overflow-hidden rounded-xl bg-slate-100 text-slate-400">{image?<Image src={image.url} alt={product.name} width={48} height={48} className="size-full object-cover"/>:<ImageIcon/>}</span><div><p className="font-extrabold">{product.name}</p><p className="text-xs font-bold text-slate-400">{productStatus(product)}{product.sku ? ` | SKU ${product.sku}` : ""}{orderCount ? ` | ${orderCount} pedidos` : ""}</p>{product.product_variants.length ? <p className="mt-1 text-xs font-bold text-violet-500">{product.product_variants.length} variantes ativas</p> : null}</div></div>
         <span className="hidden font-bold text-brand sm:block">{formatCurrency(product.promotional_price || product.price)}</span><span className={`hidden items-center gap-1 rounded-full px-3 py-1 text-xs font-extrabold sm:inline-flex ${stockStatus.className}`}>{stockStatus.icon && <AlertTriangle size={13}/>} {stockStatus.label}</span>
-        <div className="flex gap-1"><Link href={`/dashboard/produtos/${product.id}/editar`} className="grid size-9 place-items-center rounded-lg text-slate-400 hover:bg-slate-100"><Edit3 size={17}/></Link><form action={deleteProduct}><input type="hidden" name="id" value={product.id}/><button className="grid size-9 place-items-center rounded-lg text-slate-400 hover:bg-red-50 hover:text-red-600"><Trash2 size={17}/></button></form></div>
+        <div className="flex gap-1">{product.archived_at ? <form action={restoreProduct}><input type="hidden" name="id" value={product.id}/><button title="Restaurar produto" className="grid size-9 place-items-center rounded-lg text-slate-400 hover:bg-emerald-50 hover:text-brand"><RotateCcw size={17}/></button></form> : <><Link href={`/dashboard/produtos/${product.id}/editar`} className="grid size-9 place-items-center rounded-lg text-slate-400 hover:bg-slate-100"><Edit3 size={17}/></Link><form action={archiveProduct}><input type="hidden" name="id" value={product.id}/><button title="Arquivar produto" className="grid size-9 place-items-center rounded-lg text-slate-400 hover:bg-amber-50 hover:text-amber-700"><Archive size={17}/></button></form>{orderCount ? null : <form action={deleteProduct}><input type="hidden" name="id" value={product.id}/><button title="Excluir produto sem pedidos" className="grid size-9 place-items-center rounded-lg text-slate-400 hover:bg-red-50 hover:text-red-600"><Trash2 size={17}/></button></form>}</>}</div>
       </div>})}
     </div>}
   </div>;
@@ -133,6 +138,15 @@ function getStockStatus(stock: number, variantCount = 0) {
   if (stock === 0) return { label: "Sem estoque", className: "bg-red-50 text-red-700", icon: true };
   if (stock <= 5) return { label: `${stock}${suffix}`, className: "bg-amber-50 text-amber-700", icon: true };
   return { label: `${stock}${suffix}`, className: "bg-emerald-50 text-emerald-700", icon: false };
+}
+
+function productStatus(product: ProductRow) {
+  if (product.archived_at) return "Arquivado";
+  return product.active ? "Publicado" : "Inativo";
+}
+
+function productOrders(product: ProductRow) {
+  return product.order_items?.[0]?.count || 0;
 }
 
 
