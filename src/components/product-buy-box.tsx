@@ -44,6 +44,11 @@ export function ProductBuyBox({ storeId, whatsapp, color, product, options, vari
     const selectedOptions = options.map(option => `${option.name}: ${form.get(`option_${option.id}`) || "Não informado"}`);
     const variantName = selectedVariant?.name || (selectedOptions.length ? selectedOptions.join(" | ") : null);
     const notes = String(form.get("notes") || "").trim();
+    if (availableStock <= 0 || quantity < 1 || quantity > availableStock) {
+      toast.error("Confira a quantidade disponivel em estoque.");
+      setLoading(false);
+      return;
+    }
     if (variants.length && !selectedVariant) {
       toast.error("Escolha uma variante disponivel.");
       setLoading(false);
@@ -62,8 +67,9 @@ export function ProductBuyBox({ storeId, whatsapp, color, product, options, vari
       const result = await response.json();
       if (!response.ok) throw new Error(result.error);
       const variations = variantName ? `\nVariacao: ${variantName}` : selectedOptions.length ? `\nVariacoes:\n${selectedOptions.map(item => `- ${item}`).join("\n")}` : "";
+      const skuText = selectedVariant?.sku ? `\nSKU: ${selectedVariant.sku}` : "";
       const notesText = notes ? `\nObservações: ${notes}` : "";
-      const message = `Olá! Gostaria de realizar o pedido #${result.order_number}:\n\nProduto: ${product.name}${variations}\nQuantidade: ${quantity}\nValor: ${formatCurrency(total)}\n\nCliente: ${form.get("name")}\nTelefone: ${form.get("phone")}${notesText}\nTotal: ${formatCurrency(result.total)}`;
+      const message = `Olá! Gostaria de realizar o pedido #${result.order_number}:\n\nProduto: ${product.name}${variations}${skuText}\nQuantidade: ${quantity}\nValor: ${formatCurrency(total)}\n\nCliente: ${form.get("name")}\nTelefone: ${form.get("phone")}${notesText}\nTotal: ${formatCurrency(result.total)}`;
       window.open(`https://wa.me/${whatsapp.replace(/\D/g, "")}?text=${encodeURIComponent(message)}`, "_blank");
       void markOrderWhatsAppSent(result.id);
       toast.success("Pedido registrado com sucesso!");
