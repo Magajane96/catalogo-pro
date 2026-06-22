@@ -2,11 +2,27 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type { LucideIcon } from "lucide-react";
+import { BarChart3, CreditCard, Home, LayoutGrid, Package, Palette, Settings, ShieldCheck, ShoppingCart, Users } from "lucide-react";
 
-export function DashboardNavLink({ href, label, icon: Icon, compact = false }: { href: string; label: string; icon: LucideIcon; compact?: boolean }) {
+const icons = {
+  home: Home,
+  products: Package,
+  categories: LayoutGrid,
+  orders: ShoppingCart,
+  customers: Users,
+  reports: BarChart3,
+  plans: CreditCard,
+  customize: Palette,
+  settings: Settings,
+  admin: ShieldCheck,
+};
+
+export type DashboardNavIcon = keyof typeof icons;
+
+export function DashboardNavLink({ href, label, icon, compact = false }: { href: string; label: string; icon: DashboardNavIcon; compact?: boolean }) {
   const pathname = usePathname();
   const active = href === "/dashboard" ? pathname === href : pathname === href || pathname.startsWith(`${href}/`);
+  const Icon = icons[icon];
 
   if (compact) {
     return <Link href={href} aria-current={active ? "page" : undefined} className={`flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-xs font-extrabold transition ${active ? "bg-[#14261d] text-white shadow-lg shadow-slate-900/15" : "bg-white/80 text-slate-600 ring-1 ring-slate-200 hover:bg-white hover:text-slate-950"}`}>
