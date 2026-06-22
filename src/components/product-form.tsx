@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { ArrowLeft, ImagePlus, Save } from "lucide-react";
 import { createProduct, updateProduct } from "@/app/dashboard/actions";
 import { ProductImageManager } from "@/components/product-image-manager";
@@ -46,7 +46,7 @@ export function ProductForm({ categories, product }: { categories: Category[]; p
 
       <div className="space-y-6">
         <section className="rounded-2xl border border-slate-200 bg-white p-6">
-          <h3 className="font-display text-lg font-extrabold">Informacoes principais</h3>
+          <h3 className="font-display text-lg font-extrabold">Informações principais</h3>
           <div className="mt-5 space-y-5">
             <label className="block">
               <span className="mb-2 block text-sm font-bold">Nome do produto</span>
@@ -60,7 +60,7 @@ export function ProductForm({ categories, product }: { categories: Category[]; p
               </select>
             </label>
             <label className="block">
-              <span className="mb-2 block text-sm font-bold">Descricao</span>
+              <span className="mb-2 block text-sm font-bold">Descrição</span>
               <textarea name="description" rows={6} defaultValue={product?.description} className="w-full rounded-xl border border-slate-200 p-4 outline-none focus:border-brand" placeholder="Conte os detalhes, materiais e diferenciais..." />
             </label>
           </div>
@@ -74,7 +74,7 @@ export function ProductForm({ categories, product }: { categories: Category[]; p
             <div className="text-slate-400">
               <ImagePlus className="mx-auto mb-2" />
               <p className="text-sm font-bold">Selecionar imagens</p>
-              <p className="mt-1 text-xs">PNG, JPG ou WEBP, ate 5 MB</p>
+              <p className="mt-1 text-xs">PNG, JPG ou WEBP, até 5 MB</p>
             </div>
           </label>
         </section>
@@ -84,14 +84,14 @@ export function ProductForm({ categories, product }: { categories: Category[]; p
 
       <div className="space-y-6">
         <section className="rounded-2xl border border-slate-200 bg-white p-6">
-          <h3 className="font-display text-lg font-extrabold">Preco e estoque</h3>
+          <h3 className="font-display text-lg font-extrabold">Preço e estoque</h3>
           <div className="mt-5 space-y-4">
             <label className="block">
-              <span className="mb-2 block text-sm font-bold">Preco</span>
+              <span className="mb-2 block text-sm font-bold">Preço</span>
               <input name="price" required inputMode="decimal" defaultValue={product?.price} className={input} placeholder="0,00" />
             </label>
             <label className="block">
-              <span className="mb-2 block text-sm font-bold">Preco promocional</span>
+              <span className="mb-2 block text-sm font-bold">Preço promocional</span>
               <input name="promotional_price" inputMode="decimal" defaultValue={product?.promotional_price || ""} className={input} placeholder="Opcional" />
             </label>
             <label className="block">
@@ -100,10 +100,10 @@ export function ProductForm({ categories, product }: { categories: Category[]; p
             </label>
             <label className="block">
               <span className="mb-2 block text-sm font-bold">SKU</span>
-              <input name="sku" defaultValue={product?.sku || ""} className={input} placeholder="Codigo de estoque" />
+              <input name="sku" defaultValue={product?.sku || ""} className={input} placeholder="Código de estoque" />
             </label>
             <label className="block">
-              <span className="mb-2 block text-sm font-bold">Codigo interno</span>
+              <span className="mb-2 block text-sm font-bold">Código interno</span>
               <input name="internal_code" defaultValue={product?.internal_code || ""} className={input} placeholder="Seu codigo" />
             </label>
             <label className="block">
@@ -121,3 +121,4 @@ export function ProductForm({ categories, product }: { categories: Category[]; p
     </form>
   </div>;
 }
+

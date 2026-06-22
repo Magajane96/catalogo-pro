@@ -1,4 +1,4 @@
-import Image from "next/image";
+﻿import Image from "next/image";
 import { ImagePlus, Palette, Save, ShoppingBag } from "lucide-react";
 import { updateStore } from "@/app/dashboard/actions";
 import { createClient } from "@/lib/supabase/server";
@@ -19,7 +19,7 @@ export default async function PersonalizePage() {
       <div>
         <p className="text-sm font-bold text-slate-400">IDENTIDADE DA LOJA</p>
         <h2 className="font-display mt-1 text-3xl font-extrabold">Personalizar</h2>
-        <p className="mt-2 text-slate-500">Ajuste logo, banner, cores e informacoes que aparecem no catalogo publico.</p>
+        <p className="mt-2 text-slate-500">Ajuste logo, banner, cores e informacoes que aparecem no catálogo publico.</p>
       </div>
     </div>
 
@@ -27,7 +27,7 @@ export default async function PersonalizePage() {
       <input type="hidden" name="id" value={store.id} />
       <div className="space-y-6">
         <section className="rounded-2xl border border-slate-200 bg-white p-6">
-          <h3 className="font-display text-lg font-extrabold">Informacoes principais</h3>
+          <h3 className="font-display text-lg font-extrabold">Informações principais</h3>
           <div className="mt-5 grid gap-5 sm:grid-cols-2">
             <label className="block">
               <span className="mb-2 block text-sm font-bold">Nome da loja</span>
@@ -46,7 +46,7 @@ export default async function PersonalizePage() {
               <select name="category" defaultValue={store.category} className={input}>{storeCategories.map(category => <option key={category}>{category}</option>)}</select>
             </label>
             <label className="block sm:col-span-2">
-              <span className="mb-2 block text-sm font-bold">Descricao da loja</span>
+              <span className="mb-2 block text-sm font-bold">Descrição da loja</span>
               <textarea name="description" rows={4} defaultValue={store.description || ""} className="w-full rounded-xl border border-slate-200 p-4 outline-none focus:border-brand" placeholder="Fale sobre sua marca e seus produtos." />
             </label>
           </div>
@@ -84,7 +84,7 @@ export default async function PersonalizePage() {
           </div>
           <label className="mt-5 flex items-center gap-3 rounded-xl bg-slate-50 p-4 text-sm font-bold">
             <input name="published" type="checkbox" defaultChecked={store.published} className="size-5 accent-emerald-600" />
-            Loja publicada
+            Lojá publicada
           </label>
         </section>
       </div>
@@ -123,7 +123,8 @@ function ImagePickerLabel({ title }: { title: string }) {
 
 function EmptyStore() {
   return <div className="mx-auto max-w-2xl rounded-3xl border border-amber-200 bg-amber-50 p-8">
-    <h2 className="font-display text-2xl font-extrabold">Crie sua loja primeiro</h2>
-    <p className="mt-3 leading-7 text-slate-600">Depois do primeiro acesso, esta tela libera a personalizacao completa da vitrine.</p>
+    <h2 className="font-display text-2xl font-extrabold">Crie sua lojá primeiro</h2>
+    <p className="mt-3 leading-7 text-slate-600">Depois do primeiro acesso, está tela libera a personalizacao completa da vitrine.</p>
   </div>;
 }
+

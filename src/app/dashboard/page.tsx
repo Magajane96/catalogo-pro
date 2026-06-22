@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { AlertTriangle, ArrowRight, Box, Clock, Eye, Package, ShoppingBag, Users } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { OnboardingForm } from "@/components/onboarding-form";
@@ -64,8 +64,8 @@ export default async function DashboardPage() {
     <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
       <div>
         <p className="text-sm font-bold text-slate-400">BEM-VINDO AO SEU NEGOCIO</p>
-        <h2 className="font-display mt-1 text-3xl font-extrabold">Ola, {store.name}</h2>
-        <p className="mt-2 text-slate-500">Acompanhe o desempenho da sua loja hoje.</p>
+        <h2 className="font-display mt-1 text-3xl font-extrabold">Olá, {store.name}</h2>
+        <p className="mt-2 text-slate-500">Acompanhe o desempenho da sua lojá hoje.</p>
       </div>
       <Link href="/dashboard/produtos/novo" className="flex h-11 items-center justify-center gap-2 rounded-xl bg-brand px-5 text-sm font-extrabold text-white">
         <Package size={18} />Novo produto
@@ -88,7 +88,7 @@ export default async function DashboardPage() {
         <div className="flex gap-3">
           <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-white text-amber-600"><AlertTriangle size={21} /></span>
           <div>
-            <h3 className="font-display text-lg font-extrabold">Atencao ao estoque</h3>
+            <h3 className="font-display text-lg font-extrabold">Aténcao ao estoque</h3>
             <p className="mt-1 text-sm font-semibold text-amber-800/70">Ha produtos publicados com 5 unidades ou menos, incluindo estoque em variantes.</p>
           </div>
         </div>
@@ -111,7 +111,7 @@ export default async function DashboardPage() {
         <div className="flex items-center justify-between">
           <div>
             <h3 className="font-display text-lg font-extrabold">Semana da loja</h3>
-            <p className="mt-1 text-sm text-slate-500">Pedidos e visitas dos ultimos 7 dias.</p>
+            <p className="mt-1 text-sm text-slate-500">Pedidos e visitas dos últimos 7 dias.</p>
           </div>
           <Link href="/dashboard/relatorios" className="text-sm font-extrabold text-brand">Ver relatorios</Link>
         </div>
@@ -151,7 +151,7 @@ export default async function DashboardPage() {
                 <p className="text-sm font-extrabold">{activity.title}</p>
                 <p className="text-xs font-bold text-slate-400">{new Date(activity.created_at).toLocaleDateString("pt-BR")}</p>
               </div>
-            </div>) : <p className="rounded-xl bg-slate-50 p-4 text-sm font-bold text-slate-400">As movimentacoes da loja aparecerao aqui.</p>}
+            </div>) : <p className="rounded-xl bg-slate-50 p-4 text-sm font-bold text-slate-400">As movimentações da lojá aparecerao aqui.</p>}
           </div>
         </div>
       </div>
@@ -162,7 +162,7 @@ export default async function DashboardPage() {
 function SetupRequired() {
   return <div className="mx-auto max-w-2xl rounded-3xl border border-amber-200 bg-amber-50 p-8">
     <h2 className="font-display text-2xl font-extrabold">Conecte seu Supabase</h2>
-    <p className="mt-3 leading-7 text-slate-600">Copie <code>.env.example</code> para <code>.env.local</code>, informe as chaves do projeto e execute a migracao SQL. A interface ja esta pronta para usar dados reais.</p>
+    <p className="mt-3 leading-7 text-slate-600">Copie <code>.env.example</code> para <code>.env.local</code>, informe as chaves do projeto e execute a migração SQL. A interface já está pronta para usar dados reais.</p>
   </div>;
 }
 
@@ -207,3 +207,6 @@ function addDays(date: Date, days: number) {
   copy.setDate(copy.getDate() + days);
   return copy;
 }
+
+
+

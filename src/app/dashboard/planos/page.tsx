@@ -1,4 +1,4 @@
-import { AlertTriangle, CalendarClock, Check, CreditCard, MessageCircle, Package, Palette, QrCode, Sparkles, Store } from "lucide-react";
+﻿import { AlertTriangle, CalendarClock, Check, CreditCard, MessageCircle, Package, Palette, QrCode, Sparkles, Store } from "lucide-react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 
@@ -31,7 +31,7 @@ export default async function PlansPage() {
     <div>
       <p className="text-sm font-bold text-slate-400">ASSINATURA</p>
       <h2 className="font-display mt-1 text-3xl font-extrabold">Planos</h2>
-      <p className="mt-2 text-slate-500">Acompanhe seus limites e veja o que muda no MGD Catalogo PRO.</p>
+      <p className="mt-2 text-slate-500">Acompanhe seus limites e vejá o que muda no MGD Catálogo PRO.</p>
     </div>
 
     <section className="mt-8 rounded-2xl border border-slate-200 bg-white p-6">
@@ -39,8 +39,8 @@ export default async function PlansPage() {
         <div className="flex gap-3">
           <span className={`grid size-12 place-items-center rounded-xl ${plan === "pro" ? "bg-emerald-50 text-brand" : "bg-slate-100 text-slate-600"}`}>{plan === "pro" ? <Sparkles size={22} /> : <CreditCard size={22} />}</span>
           <div>
-            <h3 className="font-display text-xl font-extrabold">Plano atual: {plan === "pro" ? "PRO" : "Gratis"}</h3>
-            <p className="mt-1 text-sm font-semibold text-slate-500">{plan === "pro" ? "Sua loja esta com recursos avancados liberados." : "Comece sem custo e evolua quando precisar de mais capacidade."}</p>
+            <h3 className="font-display text-xl font-extrabold">Plano atual: {plan === "pro" ? "PRO" : "Grátis"}</h3>
+            <p className="mt-1 text-sm font-semibold text-slate-500">{plan === "pro" ? "Sua lojá está com recursos avancados liberados." : "Comece sem custo e evolua quando precisar de mais capacidade."}</p>
           </div>
         </div>
         <span className={`rounded-full px-4 py-2 text-sm font-black ${plan === "pro" ? "bg-emerald-50 text-brand" : "bg-slate-100 text-slate-600"}`}>{plan === "pro" ? "Ativo" : "Free"}</span>
@@ -53,7 +53,7 @@ export default async function PlansPage() {
           <span className="grid size-11 place-items-center rounded-xl bg-emerald-50 text-brand"><Package size={20} /></span>
           <div>
             <h3 className="font-display text-lg font-extrabold">Uso do plano gratuito</h3>
-            <p className="text-sm text-slate-500">Limites atuais protegidos tambem no Supabase.</p>
+            <p className="text-sm text-slate-500">Limites atuais protegidos também no Supabase.</p>
           </div>
         </div>
         <div className="mt-6">
@@ -64,8 +64,8 @@ export default async function PlansPage() {
           <div className="mt-3 h-3 overflow-hidden rounded-full bg-slate-100">
             <div className={`h-full rounded-full ${productUsage >= productLimit ? "bg-amber-500" : "bg-brand"}`} style={{ width: `${usagePercent}%` }} />
           </div>
-          <p className="mt-3 text-sm font-semibold text-slate-500">{plan === "pro" ? "No PRO, este limite deixa de restringir seus cadastros." : `${Math.max(0, productLimit - productUsage)} produtos restantes no plano gratis.`}</p>
-          {nearLimit && <p className="mt-3 flex items-center gap-2 rounded-xl bg-amber-50 px-3 py-2 text-sm font-bold text-amber-700"><AlertTriangle size={16} />Sua loja esta perto do limite gratuito.</p>}
+          <p className="mt-3 text-sm font-semibold text-slate-500">{plan === "pro" ? "No PRO, este limite deixa de restringir seus cadastros." : `${Math.max(0, productLimit - productUsage)} produtos restantes no plano grátis.`}</p>
+          {nearLimit && <p className="mt-3 flex items-center gap-2 rounded-xl bg-amber-50 px-3 py-2 text-sm font-bold text-amber-700"><AlertTriangle size={16} />Sua lojá está perto do limite gratuito.</p>}
         </div>
         <div className="mt-5 grid gap-3 sm:grid-cols-2">
           <UsageCard icon={Store} label="Lojas" value="1 / 1" />
@@ -80,7 +80,7 @@ export default async function PlansPage() {
           <div>
             <span className="rounded-full bg-emerald-400 px-3 py-1 text-[10px] font-black uppercase text-[#14261d]">Estrutura pronta</span>
             <h3 className="font-display mt-4 text-2xl font-extrabold">Plano PRO</h3>
-            <p className="mt-2 text-sm leading-6 text-white/60">A base do banco agora suporta assinaturas e sincroniza o plano do perfil automaticamente.</p>
+            <p className="mt-2 text-sm leading-6 text-white/60">A base do banco agora suporta assinaturas e sincroniza o plano do perfil automáticamente.</p>
           </div>
           <Sparkles className="text-emerald-400" />
         </div>
@@ -97,12 +97,12 @@ export default async function PlansPage() {
             <span className="font-bold text-white/60">Periodo</span>
             <span className="inline-flex items-center gap-1 font-extrabold"><CalendarClock size={15} />{periodEnd || "Sem vencimento"}</span>
           </div>
-          {subscription?.cancel_at_period_end && <p className="rounded-xl bg-amber-400/15 px-3 py-2 text-xs font-bold text-amber-100">Cancelamento agendado ao fim do periodo.</p>}
+          {subscription?.cancel_at_period_end && <p className="rounded-xl bg-amber-400/15 px-3 py-2 text-xs font-bold text-amber-100">Cancelamento agendado ao fim do período.</p>}
         </div>
         <div className="mt-7 grid gap-3">
           {["Produtos ilimitados", "Categorias ilimitadas", "Variantes ilimitadas", "QR Code e link da loja", "Personalizacao completa"].map(item => <p key={item} className="flex items-center gap-2 text-sm font-bold"><Check size={17} className="text-emerald-400" />{item}</p>)}
         </div>
-        {plan === "pro" ? <Link href="/dashboard/personalizar" className="mt-8 flex h-12 w-full items-center justify-center rounded-xl bg-emerald-400 text-sm font-extrabold text-[#14261d]">Aproveitar recursos PRO</Link> : <a href={`https://wa.me/?text=${encodeURIComponent("Ola! Quero saber como ativar o Plano PRO do MGD Catalogo PRO.")}`} target="_blank" rel="noreferrer" className="mt-8 flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-emerald-400 text-sm font-extrabold text-[#14261d]"><MessageCircle size={17} />Solicitar upgrade PRO</a>}
+        {plan === "pro" ? <Link href="/dashboard/personalizar" className="mt-8 flex h-12 w-full items-center justify-center rounded-xl bg-emerald-400 text-sm font-extrabold text-[#14261d]">Aproveitar recursos PRO</Link> : <a href={`https://wa.me/?text=${encodeURIComponent("Olá! Quero saber como ativar o Plano PRO do MGD Catálogo PRO.")}`} target="_blank" rel="noreferrer" className="mt-8 flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-emerald-400 text-sm font-extrabold text-[#14261d]"><MessageCircle size={17} />Solicitar upgrade PRO</a>}
       </section>
     </div>
 
@@ -140,3 +140,4 @@ function getSubscriptionStatus(status?: string) {
   };
   return status ? labels[status] || status : "Sem assinatura";
 }
+

@@ -1,4 +1,4 @@
-import { ResetPasswordForm } from "@/components/reset-password-form";
+﻿import { ResetPasswordForm } from "@/components/reset-password-form";
 
 export const metadata = { title: "Redefinir senha" };
 
@@ -18,8 +18,9 @@ export default function ResetPasswordPage() {
       <div className="absolute inset-0 opacity-20 dot-grid" />
       <div className="relative">
         <span className="inline-flex rounded-full bg-emerald-400/15 px-4 py-2 text-xs font-extrabold uppercase tracking-wider text-emerald-300">Acesso protegido</span>
-        <h2 className="font-display mt-8 max-w-lg text-5xl font-extrabold leading-tight tracking-tight">Volte para sua loja com uma senha nova e segura.</h2>
+        <h2 className="font-display mt-8 max-w-lg text-5xl font-extrabold leading-tight tracking-tight">Volte para sua lojá com uma senha nova e segura.</h2>
       </div>
     </aside>
   </main>;
 }
+

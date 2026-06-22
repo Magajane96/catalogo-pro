@@ -1,4 +1,4 @@
-"use server";
+﻿"use server";
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -54,7 +54,7 @@ export async function updateStore(formData: FormData) {
 export async function createProduct(formData: FormData) {
   const supabase = await createClient(); if (!supabase) throw new Error("Configure o Supabase primeiro.");
   const { data: store } = await supabase.from("stores").select("id").single();
-  if (!store) throw new Error("Crie sua loja antes de cadastrar produtos.");
+  if (!store) throw new Error("Crie sua lojá antes de cadastrar produtos.");
   const payload = readProductPayload(formData);
   const slug = buildProductSlug(payload.name);
   const { data: product, error } = await supabase.from("products").insert({ store_id: store.id, slug, ...payload }).select("id").single();
@@ -196,7 +196,7 @@ export async function updateProductImages(formData: FormData) {
 
 export async function createCategory(formData: FormData) {
   const supabase = await createClient(); if (!supabase) throw new Error("Configure o Supabase primeiro.");
-  const { data: store } = await supabase.from("stores").select("id").single(); if (!store) throw new Error("Loja nao encontrada.");
+  const { data: store } = await supabase.from("stores").select("id").single(); if (!store) throw new Error("Lojá não encontrada.");
   const category = readCategoryPayload(formData);
   const { error } = await supabase.from("categories").insert({ store_id: store.id, ...category });
   if (error) throw new Error(error.message); await revalidateCategoryPaths(supabase);
@@ -234,7 +234,7 @@ export async function updateOrderStatus(formData: FormData) {
 
 export async function grantManualPro(formData: FormData) {
   const supabase = await createClient(); if (!supabase) return;
-  const profileId = readRequiredUuid(formData, "profile_id", "Usuario");
+  const profileId = readRequiredUuid(formData, "profile_id", "Usuário");
   const days = readManualProDays(formData);
   const { error } = await supabase.rpc("admin_grant_manual_pro", { p_profile_id: profileId, p_days: days });
   if (error) throw new Error(error.message);
@@ -244,7 +244,7 @@ export async function grantManualPro(formData: FormData) {
 
 export async function revokeManualPro(formData: FormData) {
   const supabase = await createClient(); if (!supabase) return;
-  const profileId = readRequiredUuid(formData, "profile_id", "Usuario");
+  const profileId = readRequiredUuid(formData, "profile_id", "Usuário");
   const { error } = await supabase.rpc("admin_revoke_manual_pro", { p_profile_id: profileId });
   if (error) throw new Error(error.message);
   revalidatePath("/dashboard/admin");
@@ -295,18 +295,18 @@ function readCategoryPayload(formData: FormData) {
 }
 
 function readProductPayload(formData: FormData) {
-  const price = readMoney(formData, "price", "Preco");
-  const promotionalPrice = readOptionalMoney(formData, "promotional_price", "Preco promocional");
-  if (promotionalPrice !== null && promotionalPrice > price) throw new Error("O preco promocional nao pode ser maior que o preco.");
+  const price = readMoney(formData, "price", "Preço");
+  const promotionalPrice = readOptionalMoney(formData, "promotional_price", "Preço promocional");
+  if (promotionalPrice !== null && promotionalPrice > price) throw new Error("O preço promocional não pode ser maior que o preço.");
   return {
     category_id: readOptionalUuid(formData, "category_id") || null,
     name: readText(formData, "name", 3, 140, "Nome do produto"),
-    description: readText(formData, "description", 0, 2000, "Descricao"),
+    description: readText(formData, "description", 0, 2000, "Descrição"),
     price,
     promotional_price: promotionalPrice,
     stock: readNonNegativeInt(formData, "stock", "Estoque"),
     sku: readText(formData, "sku", 0, 80, "SKU"),
-    internal_code: readText(formData, "internal_code", 0, 80, "Codigo interno"),
+    internal_code: readText(formData, "internal_code", 0, 80, "Código interno"),
     weight: readOptionalMoney(formData, "weight", "Peso"),
     active: formData.get("active") === "on",
   };
@@ -345,12 +345,12 @@ function readStorePayload(formData: FormData, creating = false) {
   const name = readText(formData, "name", 2, 100, "Nome da loja");
   const requestedSlug = String(formData.get("slug") || "").trim() || name;
   const slug = normalizeSlug(requestedSlug);
-  if (slug.length < 3) throw new Error("Slug da loja invalido.");
+  if (slug.length < 3) throw new Error("Slug da lojá invalido.");
   const fontResult = fontFamilySchema.safeParse(String(formData.get("font_family") || "Manrope"));
   return {
     name,
     slug,
-    description: readText(formData, "description", 0, 600, "Descricao da loja"),
+    description: readText(formData, "description", 0, 600, "Descrição da loja"),
     whatsapp: readPhoneDigits(formData, "whatsapp", "WhatsApp"),
     category: readText(formData, "category", 2, 80, "Categoria"),
     primary_color: readHexColor(formData, "primary_color", "#16a263"),
@@ -381,3 +381,5 @@ function readHexColor(formData: FormData, field: string, fallback: string) {
   const value = String(formData.get(field) || fallback).trim();
   return /^#[0-9a-fA-F]{6}$/.test(value) ? value : fallback;
 }
+
+

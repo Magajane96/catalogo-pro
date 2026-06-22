@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useMemo, useRef } from "react";
 import { Copy, Download, QrCode } from "lucide-react";
@@ -11,7 +11,7 @@ export function StoreShareCard({ storeUrl, color }: { storeUrl: string; color: s
 
   async function copyLink() {
     await navigator.clipboard.writeText(storeUrl);
-    toast.success("Link da loja copiado.");
+    toast.success("Link da lojá copiado.");
   }
 
   function downloadQrCode() {
@@ -28,7 +28,7 @@ export function StoreShareCard({ storeUrl, color }: { storeUrl: string; color: s
       <span className="grid size-11 place-items-center rounded-xl text-white" style={{ background: color }}><QrCode size={20} /></span>
       <div>
         <h3 className="font-display text-lg font-extrabold">Link e QR Code</h3>
-        <p className="text-sm text-slate-500">Use nas redes sociais, embalagens e cartoes.</p>
+        <p className="text-sm text-slate-500">Use nas redes sociais, embalagens e cartões.</p>
       </div>
     </div>
     <div className="mt-6 grid gap-5 sm:grid-cols-[180px_1fr] sm:items-center">
@@ -45,3 +45,4 @@ export function StoreShareCard({ storeUrl, color }: { storeUrl: string; color: s
     </div>
   </section>;
 }
+

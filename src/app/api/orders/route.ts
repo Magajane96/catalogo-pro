@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 
@@ -27,5 +27,6 @@ export async function POST(request: Request) {
     const { data, error } = await supabase.rpc("create_public_order", { p_store_id: payload.data.storeId, p_customer: payload.data.customer, p_items: payload.data.items });
     if (error) return NextResponse.json({ error: error.message }, { status: 400 });
     return NextResponse.json(data);
-  } catch { return NextResponse.json({ error: "Nao foi possivel criar o pedido." }, { status: 400 }); }
+  } catch { return NextResponse.json({ error: "Não foi possível criar o pedido." }, { status: 400 }); }
 }
+

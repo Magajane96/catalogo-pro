@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import Link from "next/link";
@@ -29,22 +29,24 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
         if (error) throw error;
         router.push("/dashboard"); router.refresh();
       }
-    } catch (error) { toast.error(error instanceof Error ? error.message : "Nao foi possivel continuar."); }
+    } catch (error) { toast.error(error instanceof Error ? error.message : "NÃ£o foi possÃ­vel continuar."); }
     finally { setLoading(false); }
   }
 
   async function resetPassword() {
     const email = prompt("Digite o e-mail da sua conta:");
     if (!email) return;
-    try { const supabase = createClient(); const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${location.origin}/auth/callback?next=/auth/redefinir-senha` }); if (error) throw error; toast.success("Enviamos as instrucoes para seu e-mail."); }
+    try { const supabase = createClient(); const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${location.origin}/auth/callback?next=/auth/redefinir-senha` }); if (error) throw error; toast.success("Enviamos as instruÃ§Ãµes para seu e-mail."); }
     catch (error) { toast.error(error instanceof Error ? error.message : "Falha ao enviar o e-mail."); }
   }
 
   return <form onSubmit={submit} className="mt-8 space-y-5">
-    {isSignup && <label className="block"><span className="mb-2 block text-sm font-bold">Seu nome</span><input name="name" required autoComplete="name" placeholder="Como podemos chamar voce?" className="h-13 w-full rounded-xl border border-slate-200 bg-white px-4 outline-none transition focus:border-brand focus:ring-4 focus:ring-emerald-100" /></label>}
-    <label className="block"><span className="mb-2 block text-sm font-bold">E-mail</span><input name="email" required type="email" autoComplete="email" placeholder="voce@exemplo.com" className="h-13 w-full rounded-xl border border-slate-200 bg-white px-4 outline-none transition focus:border-brand focus:ring-4 focus:ring-emerald-100" /></label>
-    <label className="block"><span className="mb-2 flex items-center justify-between text-sm font-bold">Senha {!isSignup && <button type="button" onClick={resetPassword} className="text-xs text-brand hover:underline">Esqueci minha senha</button>}</span><span className="relative block"><input name="password" required minLength={6} type={show ? "text" : "password"} autoComplete={isSignup ? "new-password" : "current-password"} placeholder="Minimo de 6 caracteres" className="h-13 w-full rounded-xl border border-slate-200 bg-white px-4 pr-12 outline-none transition focus:border-brand focus:ring-4 focus:ring-emerald-100"/><button type="button" onClick={()=>setShow(!show)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400">{show ? <EyeOff size={19}/> : <Eye size={19}/>}</button></span></label>
+    {isSignup && <label className="block"><span className="mb-2 block text-sm font-bold">Seu nome</span><input name="name" required autoComplete="name" placeholder="Como podemos chamar vocÃª?" className="h-13 w-full rounded-xl border border-slate-200 bg-white px-4 outline-none transition focus:border-brand focus:ring-4 focus:ring-emerald-100" /></label>}
+    <label className="block"><span className="mb-2 block text-sm font-bold">E-mail</span><input name="email" required type="email" autoComplete="email" placeholder="você@exemplo.com" className="h-13 w-full rounded-xl border border-slate-200 bg-white px-4 outline-none transition focus:border-brand focus:ring-4 focus:ring-emerald-100" /></label>
+    <label className="block"><span className="mb-2 flex items-center justify-between text-sm font-bold">Senha {!isSignup && <button type="button" onClick={resetPassword} className="text-xs text-brand hover:underline">Esqueci minha senha</button>}</span><span className="relative block"><input name="password" required minLength={6} type={show ? "text" : "password"} autoComplete={isSignup ? "new-password" : "current-password"} placeholder="MÃ­nimo de 6 caracteres" className="h-13 w-full rounded-xl border border-slate-200 bg-white px-4 pr-12 outline-none transition focus:border-brand focus:ring-4 focus:ring-emerald-100"/><button type="button" onClick={()=>setShow(!show)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400">{show ? <EyeOff size={19}/> : <Eye size={19}/>}</button></span></label>
     <button disabled={loading} className="flex h-13 w-full items-center justify-center gap-2 rounded-xl bg-brand font-extrabold text-white shadow-lg shadow-emerald-700/15 transition hover:bg-[#128452] disabled:opacity-60">{loading ? <Loader2 className="animate-spin" size={20}/> : <>{isSignup ? "Criar minha conta" : "Entrar no painel"}<ArrowRight size={18}/></>}</button>
-    <p className="text-center text-sm text-slate-500">{isSignup ? "Ja possui uma conta?" : "Ainda nao tem uma conta?"} <Link href={isSignup ? "/login" : "/cadastro"} className="font-extrabold text-brand hover:underline">{isSignup ? "Entrar" : "Criar gratis"}</Link></p>
+    <p className="text-center text-sm text-slate-500">{isSignup ? "JÃ¡ possui uma conta?" : "Ainda nÃ£o tem uma conta?"} <Link href={isSignup ? "/login" : "/cadastro"} className="font-extrabold text-brand hover:underline">{isSignup ? "Entrar" : "Criar grÃ¡tis"}</Link></p>
   </form>;
 }
+
+

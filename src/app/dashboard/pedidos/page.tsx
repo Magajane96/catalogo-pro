@@ -1,4 +1,4 @@
-import { CheckCircle2, Clock, Hash, Mail, MessageCircle, PackageCheck, Search, ShoppingBag } from "lucide-react";
+﻿import { CheckCircle2, Clock, Hash, Mail, MessageCircle, PackageCheck, Search, ShoppingBag } from "lucide-react";
 import { updateOrderStatus } from "@/app/dashboard/actions";
 import { sanitizeDashboardSearchTerm } from "@/lib/search";
 import { createClient } from "@/lib/supabase/server";
@@ -41,13 +41,13 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
     <div>
       <p className="text-sm font-bold text-slate-400">VENDAS</p>
       <h2 className="font-display mt-1 text-3xl font-extrabold">Pedidos</h2>
-      <p className="mt-2 text-slate-500">Acompanhe cada venda do recebimento ate a entrega.</p>
+      <p className="mt-2 text-slate-500">Acompanhe cada venda do recebimento até a entrega.</p>
     </div>
 
     <form className="mt-7 grid gap-3 rounded-2xl border border-slate-200 bg-white p-4 md:grid-cols-[1fr_220px_auto]">
       <label className="relative">
         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-        <input name="q" defaultValue={search} placeholder="Buscar por cliente, telefone ou numero do pedido" className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-11 pr-4 text-sm font-semibold outline-none focus:border-brand" />
+        <input name="q" defaultValue={search} placeholder="Buscar por cliente, telefone ou número do pedido" className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-11 pr-4 text-sm font-semibold outline-none focus:border-brand" />
       </label>
       <select name="status" defaultValue={selectedStatus} className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm font-bold">
         <option value="all">Todos os status</option>
@@ -67,7 +67,7 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
       <div>
         <ShoppingBag className="mx-auto text-slate-300" size={42} />
         <h3 className="font-display mt-4 text-xl font-extrabold">Nenhum pedido ainda</h3>
-        <p className="mt-2 text-slate-400">Os pedidos feitos na loja aparecerao aqui.</p>
+        <p className="mt-2 text-slate-400">Os pedidos feitos na lojá aparecerao aqui.</p>
       </div>
     </div> : <div className="mt-8 space-y-4">
       {orders.map(order => {
@@ -88,7 +88,7 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
               <span>{order.customer_name} - {order.customer_phone}</span>
               {order.customer_email && <span className="inline-flex items-center gap-1"><Mail size={14} />{order.customer_email}</span>}
             </div>
-            {order.notes && <p className="mt-2 rounded-xl bg-slate-50 p-3 text-sm font-semibold text-slate-600">Observacoes: {order.notes}</p>}
+            {order.notes && <p className="mt-2 rounded-xl bg-slate-50 p-3 text-sm font-semibold text-slate-600">Observações: {order.notes}</p>}
             {order.whatsapp_sent_at && <p className="mt-1 text-xs font-bold text-slate-400">Enviado em {formatDateTime(order.whatsapp_sent_at)}</p>}
             {order.stock_restored_at && <p className="mt-1 text-xs font-bold text-slate-400">Estoque restaurado em {formatDateTime(order.stock_restored_at)}</p>}
           </div>
@@ -164,6 +164,7 @@ function buildCustomerWhatsAppMessage(order: {
     const variation = item.variant_name || item.variant_sku ? ` (${[item.variant_name, item.variant_sku ? `SKU ${item.variant_sku}` : ""].filter(Boolean).join(" - ")})` : "";
     return `- ${item.quantity}x ${item.product_name}${variation}: ${formatCurrency(Number(item.unit_price) * item.quantity)}`;
   });
-  const notes = order.notes ? `\n\nObservacoes: ${order.notes}` : "";
-  return `Ola! Sobre seu pedido #${order.order_number}:\n\n${lines.join("\n")}${notes}\n\nTotal: ${formatCurrency(order.total)}\n\nPodemos continuar por aqui.`;
+  const notes = order.notes ? `\n\nObservações: ${order.notes}` : "";
+  return `Olá! Sobre seu pedido #${order.order_number}:\n\n${lines.join("\n")}${notes}\n\nTotal: ${formatCurrency(order.total)}\n\nPodemos continuar por aqui.`;
 }
+

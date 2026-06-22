@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+﻿import { notFound } from "next/navigation";
 import { CreditCard, Package, ShieldCheck, ShoppingBag, Sparkles, Store, Users } from "lucide-react";
 import { grantManualPro, revokeManualPro } from "@/app/dashboard/actions";
 import { createClient } from "@/lib/supabase/server";
@@ -57,7 +57,7 @@ export default async function AdminPage() {
   }));
   const cards = [
     ["Total de lojas", stores || 0, Store, "bg-emerald-50 text-brand"],
-    ["Total de usuarios", users || 0, Users, "bg-blue-50 text-blue-600"],
+    ["Total de usuários", users || 0, Users, "bg-blue-50 text-blue-600"],
     ["Total de produtos", products || 0, Package, "bg-violet-50 text-violet-600"],
     ["Total de pedidos", orders?.length || 0, ShoppingBag, "bg-orange-50 text-orange-600"],
   ] as const;
@@ -67,7 +67,7 @@ export default async function AdminPage() {
       <div>
         <p className="text-sm font-bold text-slate-400">ADMINISTRACAO GLOBAL</p>
         <h2 className="font-display mt-1 text-3xl font-extrabold">Painel administrativo</h2>
-        <p className="mt-2 text-slate-500">Visao geral da operacao SaaS MGD Catalogo PRO.</p>
+        <p className="mt-2 text-slate-500">Visão geral da operação SaaS MGD Catálogo PRO.</p>
       </div>
       <span className="hidden items-center gap-2 rounded-xl bg-emerald-50 px-4 py-2 text-sm font-extrabold text-brand sm:inline-flex"><ShieldCheck size={17} />Admin</span>
     </div>
@@ -113,7 +113,7 @@ export default async function AdminPage() {
               <p className="font-extrabold">{store.name}</p>
               <p className="mt-1 text-xs font-bold text-slate-400">/{store.slug} - {store.category} - {store.owner?.name || "Sem nome"}</p>
             </div>
-            <span className="text-sm font-bold text-slate-500">{store.owner?.plan === "pro" ? "PRO" : "Gratis"}</span>
+            <span className="text-sm font-bold text-slate-500">{store.owner?.plan === "pro" ? "PRO" : "Grátis"}</span>
             <span className={`rounded-full px-3 py-1 text-center text-xs font-black ${store.published ? "bg-emerald-50 text-brand" : "bg-slate-100 text-slate-500"}`}>{store.published ? "Publicada" : "Oculta"}</span>
             <div className="flex flex-wrap gap-2">
               <form action={grantManualPro}>
@@ -129,7 +129,7 @@ export default async function AdminPage() {
           </div>) : <div className="grid min-h-40 place-items-center text-center text-slate-400">
             <div>
               <Store className="mx-auto mb-3" />
-              <p className="font-bold">Nenhuma loja criada ainda.</p>
+              <p className="font-bold">Nenhuma lojá criada ainda.</p>
             </div>
           </div>}
         </div>
@@ -149,12 +149,12 @@ export default async function AdminPage() {
           const status = subscriptionStatus(subscription);
           return <div key={subscription.id} className="grid gap-3 border-b border-slate-100 p-4 last:border-0 sm:grid-cols-[1fr_110px_130px_140px] sm:items-center">
             <div>
-              <p className="font-extrabold">{subscription.owner?.name || "Usuario sem nome"}</p>
+              <p className="font-extrabold">{subscription.owner?.name || "Usuário sem nome"}</p>
               <p className="mt-1 text-xs font-bold text-slate-400">{subscription.provider} - criada em {formatDate(subscription.created_at)}</p>
             </div>
             <span className="text-sm font-bold text-slate-500">{subscription.plan === "pro" ? "PRO" : subscription.plan}</span>
             <span className={`rounded-full px-3 py-1 text-center text-xs font-black ${status.className}`}>{status.label}</span>
-            <span className="text-sm font-bold text-slate-500">{subscription.current_period_end ? `Ate ${formatDate(subscription.current_period_end)}` : "Sem vencimento"}</span>
+            <span className="text-sm font-bold text-slate-500">{subscription.current_period_end ? `Até ${formatDate(subscription.current_period_end)}` : "Sem vencimento"}</span>
           </div>;
         }) : <div className="grid min-h-32 place-items-center text-center text-slate-400">
           <div>
@@ -216,3 +216,4 @@ function SetupRequired() {
     <p className="mt-3 leading-7 text-slate-600">Configure as variaveis do Supabase para acessar o painel administrativo.</p>
   </div>;
 }
+

@@ -1,4 +1,4 @@
-import { Mail, MessageCircle, Phone, Search, Users } from "lucide-react";
+﻿import { Mail, MessageCircle, Phone, Search, Users } from "lucide-react";
 import { sanitizeDashboardSearchTerm } from "@/lib/search";
 import { createClient } from "@/lib/supabase/server";
 import { formatCurrency } from "@/lib/utils";
@@ -61,7 +61,7 @@ export default async function CustomersPage({ searchParams }: { searchParams: Pr
     <div>
       <p className="text-sm font-bold text-slate-400">RELACIONAMENTO</p>
       <h2 className="font-display mt-1 text-3xl font-extrabold">Clientes</h2>
-      <p className="mt-2 text-slate-500">Contatos cadastrados automaticamente a partir dos pedidos.</p>
+      <p className="mt-2 text-slate-500">Contatos cadastrados automáticamente a partir dos pedidos.</p>
     </div>
 
     <div className="mt-7 grid gap-3 sm:grid-cols-4">
@@ -90,8 +90,8 @@ export default async function CustomersPage({ searchParams }: { searchParams: Pr
     {!customerRows.length ? <div className="mt-8 grid min-h-96 place-items-center rounded-3xl border border-dashed border-slate-300 bg-white text-center">
       <div>
         <Users className="mx-auto text-slate-300" size={42} />
-        <h3 className="font-display mt-4 text-xl font-extrabold">{search ? "Nenhum cliente encontrado" : "Sua lista ainda esta vazia"}</h3>
-        <p className="mt-2 text-slate-400">{search ? "Tente buscar por outro nome, telefone ou e-mail." : "O primeiro cliente sera salvo ao concluir um pedido."}</p>
+        <h3 className="font-display mt-4 text-xl font-extrabold">{search ? "Nenhum cliente encontrado" : "Sua lista ainda está vazia"}</h3>
+        <p className="mt-2 text-slate-400">{search ? "Tente buscar por outro nome, telefone ou e-mail." : "O primeiro cliente será salvo ao concluir um pedido."}</p>
       </div>
     </div> : <div className="mt-8 grid gap-4 md:grid-cols-2">
       {customerRows.map(customer => {
@@ -101,8 +101,8 @@ export default async function CustomersPage({ searchParams }: { searchParams: Pr
         const vip = isVipCustomer(customer, vipThreshold);
         const lastOrderSummary = recentOrders[0] ? summarizeOrderItems(recentOrders[0].order_items) : "";
         const message = recentOrders[0]
-          ? `Ola, ${customer.name}! Tudo bem? Vi aqui seu pedido #${recentOrders[0].order_number}${lastOrderSummary ? ` com ${lastOrderSummary}` : ""}. Podemos continuar seu atendimento por aqui.`
-          : `Ola, ${customer.name}! Tudo bem? Aqui e da loja. Podemos continuar seu atendimento por aqui.`;
+          ? `Olá, ${customer.name}! Tudo bem? Vi aqui seu pedido #${recentOrders[0].order_number}${lastOrderSummary ? ` com ${lastOrderSummary}` : ""}. Podemos continuar seu atendimento por aqui.`
+          : `Olá, ${customer.name}! Tudo bem? Aqui e da loja. Podemos continuar seu atendimento por aqui.`;
         return <article key={customer.id} className="rounded-2xl border border-slate-200 bg-white p-5">
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-center gap-3">
@@ -226,3 +226,4 @@ function normalizeBrazilPhone(value: string) {
 function formatDate(value: string) {
   return new Date(value).toLocaleDateString("pt-BR");
 }
+

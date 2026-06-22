@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -28,7 +28,7 @@ export function ResetPasswordForm() {
       router.push("/dashboard");
       router.refresh();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Nao foi possivel atualizar sua senha.");
+      toast.error(error instanceof Error ? error.message : "Não foi possível atualizar sua senha.");
     } finally {
       setLoading(false);
     }
@@ -41,7 +41,7 @@ export function ResetPasswordForm() {
     <label className="block">
       <span className="mb-2 block text-sm font-bold">Nova senha</span>
       <span className="relative block">
-        <input name="password" required minLength={6} type={show ? "text" : "password"} autoComplete="new-password" placeholder="Minimo de 6 caracteres" className="h-13 w-full rounded-xl border border-slate-200 bg-white px-4 pr-12 outline-none transition focus:border-brand focus:ring-4 focus:ring-emerald-100" />
+        <input name="password" required minLength={6} type={show ? "text" : "password"} autoComplete="new-password" placeholder="Mínimo de 6 caracteres" className="h-13 w-full rounded-xl border border-slate-200 bg-white px-4 pr-12 outline-none transition focus:border-brand focus:ring-4 focus:ring-emerald-100" />
         <button type="button" onClick={() => setShow(!show)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" aria-label={show ? "Ocultar senha" : "Mostrar senha"}>{show ? <EyeOff size={19} /> : <Eye size={19} />}</button>
       </span>
     </label>
@@ -55,3 +55,5 @@ export function ResetPasswordForm() {
     <p className="text-center text-sm text-slate-500">Lembrou sua senha? <Link href="/login" className="font-extrabold text-brand hover:underline">Entrar</Link></p>
   </form>;
 }
+
+

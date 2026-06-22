@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f7f8fb;
+  --background: #f1f5f2;
   --foreground: #17211c;
   --brand: #16a263;
   --brand-dark: #087344;
@@ -20,11 +20,24 @@
 
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
-body { background: var(--background); color: var(--foreground); font-family: var(--font-body), sans-serif; }
+body {
+  background:
+    radial-gradient(circle at 12% 8%, rgba(22, 162, 99, .10), transparent 30%),
+    linear-gradient(135deg, #eef4ef 0%, #f7f4ec 45%, #eef2f7 100%);
+  color: var(--foreground);
+  font-family: var(--font-body), sans-serif;
+}
+::selection { background: rgba(22, 162, 99, .22); color: #0f2419; }
 button, a { -webkit-tap-highlight-color: transparent; }
+button, a, input, select, textarea { outline-offset: 3px; }
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+  outline: 3px solid rgba(22, 162, 99, .28);
+  border-color: var(--brand);
+}
+input:checked, input[type="checkbox"]:checked, input[type="radio"]:checked { accent-color: var(--brand); }
 .font-display { font-family: var(--font-display), sans-serif; }
-.soft-shadow { box-shadow: 0 24px 80px rgba(20, 46, 33, .12); }
-.card-shadow { box-shadow: 0 14px 40px rgba(32, 51, 42, .08); }
+.soft-shadow { box-shadow: 0 28px 90px rgba(20, 46, 33, .16); }
+.card-shadow { box-shadow: 0 16px 46px rgba(32, 51, 42, .10); }
 .dot-grid { background-image: radial-gradient(rgba(19, 119, 72, .16) 1px, transparent 1px); background-size: 20px 20px; }
 
 @keyframes float { 0%, 100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-10px) rotate(-2deg); } }

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useMemo, useState } from "react";
 import { Loader2, MessageCircle, Minus, Plus, ShoppingBag } from "lucide-react";
@@ -41,7 +41,7 @@ export function ProductBuyBox({ storeId, whatsapp, color, product, options, vari
     event.preventDefault();
     setLoading(true);
     const form = new FormData(event.currentTarget);
-    const selectedOptions = options.map(option => `${option.name}: ${form.get(`option_${option.id}`) || "Nao informado"}`);
+    const selectedOptions = options.map(option => `${option.name}: ${form.get(`option_${option.id}`) || "Não informado"}`);
     const variantName = selectedVariant?.name || (selectedOptions.length ? selectedOptions.join(" | ") : null);
     const notes = String(form.get("notes") || "").trim();
     if (variants.length && !selectedVariant) {
@@ -62,13 +62,13 @@ export function ProductBuyBox({ storeId, whatsapp, color, product, options, vari
       const result = await response.json();
       if (!response.ok) throw new Error(result.error);
       const variations = variantName ? `\nVariacao: ${variantName}` : selectedOptions.length ? `\nVariacoes:\n${selectedOptions.map(item => `- ${item}`).join("\n")}` : "";
-      const notesText = notes ? `\nObservacoes: ${notes}` : "";
-      const message = `Ola! Gostaria de realizar o pedido #${result.order_number}:\n\nProduto: ${product.name}${variations}\nQuantidade: ${quantity}\nValor: ${formatCurrency(total)}\n\nCliente: ${form.get("name")}\nTelefone: ${form.get("phone")}${notesText}\nTotal: ${formatCurrency(result.total)}`;
+      const notesText = notes ? `\nObservações: ${notes}` : "";
+      const message = `Olá! Gostaria de realizar o pedido #${result.order_number}:\n\nProduto: ${product.name}${variations}\nQuantidade: ${quantity}\nValor: ${formatCurrency(total)}\n\nCliente: ${form.get("name")}\nTelefone: ${form.get("phone")}${notesText}\nTotal: ${formatCurrency(result.total)}`;
       window.open(`https://wa.me/${whatsapp.replace(/\D/g, "")}?text=${encodeURIComponent(message)}`, "_blank");
       void markOrderWhatsAppSent(result.id);
       toast.success("Pedido registrado com sucesso!");
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Nao foi possivel registrar o pedido.");
+      toast.error(error instanceof Error ? error.message : "Não foi possível registrar o pedido.");
     } finally {
       setLoading(false);
     }
@@ -124,7 +124,7 @@ export function ProductBuyBox({ storeId, whatsapp, color, product, options, vari
         <input name="name" required minLength={2} placeholder="Seu nome" className="h-12 rounded-xl border border-slate-200 px-4 outline-none focus:border-brand" />
         <input name="phone" required minLength={8} placeholder="Seu WhatsApp" className="h-12 rounded-xl border border-slate-200 px-4 outline-none focus:border-brand" />
         <input name="email" type="email" placeholder="E-mail (opcional)" className="h-12 rounded-xl border border-slate-200 px-4 outline-none focus:border-brand" />
-        <textarea name="notes" rows={3} maxLength={500} placeholder="Observacoes do pedido (opcional)" className="rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-brand" />
+        <textarea name="notes" rows={3} maxLength={500} placeholder="Observações do pedido (opcional)" className="rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-brand" />
       </div>
       <div className="flex items-center justify-between rounded-2xl bg-slate-50 p-4 font-extrabold">
         <span>Total</span>
@@ -135,7 +135,7 @@ export function ProductBuyBox({ storeId, whatsapp, color, product, options, vari
         {availableStock === 0 ? "Produto sem estoque" : "Registrar e enviar ao WhatsApp"}
       </button>
     </form>
-    <p className="mt-4 flex items-center gap-2 text-xs font-bold text-slate-400"><ShoppingBag size={15} />O pedido tambem fica salvo no painel da loja.</p>
+    <p className="mt-4 flex items-center gap-2 text-xs font-bold text-slate-400"><ShoppingBag size={15} />O pedido também fica salvo no painel da loja.</p>
   </section>;
 }
 
@@ -148,3 +148,5 @@ async function markOrderWhatsAppSent(orderId: string) {
     });
   } catch {}
 }
+
+

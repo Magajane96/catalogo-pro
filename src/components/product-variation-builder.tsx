@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { Plus, Wand2 } from "lucide-react";
 import { useState, type Dispatch, type SetStateAction } from "react";
@@ -98,14 +98,14 @@ export function ProductVariationBuilder({ initialOptions, initialVariants, input
               <input name="variant_stocks" type="number" min="0" value={variant.stock} onChange={event => updateVariant(setVariants, index, { stock: Number(event.target.value || 0) })} className={inputClass} placeholder="0" />
             </label>
             <label>
-              <span className="mb-2 block text-sm font-bold">Ajuste de preco</span>
+              <span className="mb-2 block text-sm font-bold">Ajuste de preço</span>
               <input name="variant_price_adjustments" inputMode="decimal" value={variant.price_adjustment || ""} onChange={event => updateVariant(setVariants, index, { price_adjustment: Number(String(event.target.value || "0").replace(",", ".")) })} className={inputClass} placeholder="Ex: 10,00" />
             </label>
           </div>
           <div className="mt-4 grid gap-4 sm:grid-cols-[1fr_160px]">
             <label>
               <span className="mb-2 block text-sm font-bold">SKU da variante</span>
-              <input name="variant_skus" value={variant.sku || ""} onChange={event => updateVariant(setVariants, index, { sku: event.target.value })} className={inputClass} placeholder="Codigo especifico" />
+              <input name="variant_skus" value={variant.sku || ""} onChange={event => updateVariant(setVariants, index, { sku: event.target.value })} className={inputClass} placeholder="Código especifico" />
             </label>
             <label className="flex items-center gap-3 rounded-xl bg-white px-4 py-3 text-sm font-bold">
               <input name={`variant_active_${index}`} type="checkbox" checked={variant.active} onChange={event => updateVariant(setVariants, index, { active: event.target.checked })} className="size-5 accent-emerald-600" />
@@ -155,3 +155,4 @@ function splitCsv(value: string) {
 function combine(groups: string[][]): string[][] {
   return groups.reduce<string[][]>((acc, group) => acc.flatMap(items => group.map(item => [...items, item])), [[]]);
 }
+

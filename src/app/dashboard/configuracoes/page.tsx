@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { CheckCircle2, Cloud, ExternalLink, Globe2, Save, Search, ShieldCheck } from "lucide-react";
 import { headers } from "next/headers";
 import { updateStore } from "@/app/dashboard/actions";
@@ -16,18 +16,18 @@ export default async function SettingsPage() {
   const storeUrl = `${protocol}://${host}/loja/${store.slug}`;
   const input = "h-12 w-full rounded-xl border border-slate-200 bg-white px-4 outline-none transition focus:border-brand focus:ring-4 focus:ring-emerald-100";
   const checklist = [
-    { label: "Loja publicada", done: store.published },
+    { label: "Lojá publicada", done: store.published },
     { label: "WhatsApp configurado", done: store.whatsapp.replace(/\D/g, "").length >= 10 },
-    { label: "Descricao da loja", done: Boolean(store.description?.trim()) },
+    { label: "Descrição da loja", done: Boolean(store.description?.trim()) },
     { label: "Titulo SEO", done: Boolean((store.seo_title || store.name).trim()) },
-    { label: "Descricao SEO", done: Boolean((store.seo_description || store.description)?.trim()) },
+    { label: "Descrição SEO", done: Boolean((store.seo_description || store.description)?.trim()) },
   ];
   const deployChecklist = [
     { label: "URL publica configurada", done: Boolean(process.env.NEXT_PUBLIC_SITE_URL?.trim()) },
     { label: "Supabase URL configurada", done: Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL?.trim()) },
     { label: "Supabase anon key configurada", done: Boolean(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim()) },
     { label: "Dominio HTTPS em uso", done: protocol === "https" },
-    { label: "Loja publicada para indexacao", done: store.published },
+    { label: "Lojá publicada para indexacao", done: store.published },
   ];
   const readyItems = checklist.filter(item => item.done).length;
   const deployReadyItems = deployChecklist.filter(item => item.done).length;
@@ -36,7 +36,7 @@ export default async function SettingsPage() {
     <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
       <div>
         <p className="text-sm font-bold text-slate-400">PUBLICACAO</p>
-        <h2 className="font-display mt-1 text-3xl font-extrabold">Configuracoes</h2>
+        <h2 className="font-display mt-1 text-3xl font-extrabold">Configurações</h2>
         <p className="mt-2 text-slate-500">Controle o link da loja, QR Code, SEO e disponibilidade publica.</p>
       </div>
       <Link href={`/loja/${store.slug}`} target="_blank" className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-5 text-sm font-extrabold">
@@ -61,13 +61,13 @@ export default async function SettingsPage() {
           <div className="flex items-center gap-3">
             <span className="grid size-11 place-items-center rounded-xl bg-emerald-50 text-brand"><Search size={20} /></span>
             <div>
-              <h3 className="font-display text-lg font-extrabold">SEO automatico</h3>
-              <p className="text-sm text-slate-500">Personalize como sua loja aparece ao compartilhar o link.</p>
+              <h3 className="font-display text-lg font-extrabold">SEO automático</h3>
+              <p className="text-sm text-slate-500">Personalize como sua lojá aparece ao compartilhar o link.</p>
             </div>
           </div>
           <div className="mt-6 space-y-5">
             <label className="block">
-              <span className="mb-2 block text-sm font-bold">Endereco da loja</span>
+              <span className="mb-2 block text-sm font-bold">Endereço da loja</span>
               <div className="flex rounded-xl border border-slate-200 bg-slate-50">
                 <span className="hidden items-center px-4 text-sm font-bold text-slate-400 sm:flex">/loja/</span>
                 <input name="slug" required defaultValue={store.slug} className="h-12 min-w-0 flex-1 bg-transparent px-4 font-bold outline-none sm:px-0" />
@@ -95,7 +95,7 @@ export default async function SettingsPage() {
             </div>
             <label className="mt-6 flex items-center gap-3 rounded-xl bg-slate-50 p-4 text-sm font-bold">
               <input name="published" type="checkbox" defaultChecked={store.published} className="size-5 accent-emerald-600" />
-              Loja publicada
+              Lojá publicada
             </label>
             <button className="mt-5 flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-brand font-extrabold text-white"><Save size={18} />Salvar ajustes</button>
           </section>
@@ -103,7 +103,7 @@ export default async function SettingsPage() {
           <section className="rounded-2xl border border-slate-200 bg-white p-6">
             <div className="flex items-center justify-between gap-3">
               <div>
-                <h3 className="font-display text-lg font-extrabold">Checklist de publicacao</h3>
+                <h3 className="font-display text-lg font-extrabold">Checklist de publicação</h3>
                 <p className="mt-1 text-sm text-slate-500">{readyItems} de {checklist.length} itens prontos</p>
               </div>
               <span className="grid size-11 place-items-center rounded-xl bg-emerald-50 text-brand"><CheckCircle2 size={20} /></span>
@@ -146,7 +146,9 @@ export default async function SettingsPage() {
 
 function EmptyStore() {
   return <div className="mx-auto max-w-2xl rounded-3xl border border-amber-200 bg-amber-50 p-8">
-    <h2 className="font-display text-2xl font-extrabold">Crie sua loja primeiro</h2>
-    <p className="mt-3 leading-7 text-slate-600">Depois do primeiro acesso, esta tela mostra seu link, QR Code e configuracoes publicas.</p>
+    <h2 className="font-display text-2xl font-extrabold">Crie sua lojá primeiro</h2>
+    <p className="mt-3 leading-7 text-slate-600">Depois do primeiro acesso, está tela mostra seu link, QR Code e configuracoes públicas.</p>
   </div>;
 }
+
+

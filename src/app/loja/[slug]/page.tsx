@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+﻿import { notFound } from "next/navigation";
 import Image from "next/image";
 import { MessageCircle, ShoppingBag } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
@@ -10,7 +10,7 @@ export async function generateMetadata({params}:{params:Promise<{slug:string}>})
   const {slug}=await params; const supabase=await createClient();
   const {data:store}=supabase?await supabase.from("stores").select("name,description,logo_url,banner_url,seo_title,seo_description").eq("slug",slug).eq("published",true).maybeSingle():{data:null};
   const title=store?.seo_title||store?.name||"Loja";
-  const description=store?.seo_description||store?.description||"Catalogo online com pedido direto pelo WhatsApp.";
+  const description=store?.seo_description||store?.description||"Catálogo online com pedido direto pelo WhatsApp.";
   const image=store?.banner_url||store?.logo_url;
   const url=siteUrl(`/loja/${slug}`);
   return {title,description,alternates:{canonical:url},openGraph:{title,description,url,type:"website",images:image?[{url:image,alt:store?.name||"Loja"}]:[]},twitter:{card:"summary_large_image",title,description,images:image?[image]:[]}};
@@ -27,7 +27,7 @@ export default async function StorePage({params}:{params:Promise<{slug:string}>}
     "@context": "https://schema.org",
     "@type": "Store",
     name: store.name,
-    description: store.description || "Catalogo online",
+    description: store.description || "Catálogo online",
     url: siteUrl(`/loja/${slug}`),
     image: store.logo_url || store.banner_url || undefined,
     telephone: store.whatsapp,
@@ -37,7 +37,8 @@ export default async function StorePage({params}:{params:Promise<{slug:string}>}
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(schema) }} />
     <StoreVisitTracker storeId={store.id} path={`/loja/${slug}`} />
     <header className="border-b border-slate-100 bg-white"><div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-5"><div className="flex items-center gap-3">{store.logo_url?<Image src={store.logo_url} alt={store.name} width={44} height={44} className="size-11 rounded-full object-cover"/>:<span className="grid size-11 place-items-center rounded-full text-white" style={{background:store.primary_color}}><ShoppingBag/></span>}<div><h1 className="font-display text-lg font-extrabold">{store.name}</h1><p className="text-xs text-slate-400">{store.category}</p></div></div><a href={`https://wa.me/${store.whatsapp.replace(/\D/g,"")}`} className="flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-extrabold text-white" style={{background:store.primary_color}}><MessageCircle size={18}/>Falar conosco</a></div></header>
-    <section className="mx-auto max-w-7xl px-5 py-6"><div className="flex min-h-64 items-center overflow-hidden rounded-3xl bg-cover bg-center p-8 text-white sm:p-12" style={store.banner_url?{backgroundColor:store.secondary_color,backgroundImage:`linear-gradient(90deg,rgba(15,30,22,.85),rgba(15,30,22,.2)),url(${store.banner_url})`}:{backgroundColor:store.secondary_color}}><div><p className="text-xs font-extrabold uppercase tracking-[.2em] text-white/50">Bem-vindo a nossa loja</p><h2 className="font-display mt-3 max-w-xl text-4xl font-extrabold sm:text-5xl">Produtos escolhidos com carinho para voce.</h2><p className="mt-4 max-w-lg text-white/60">{store.description||"Explore nosso catalogo e faca seu pedido de forma simples pelo WhatsApp."}</p></div></div><div className="my-8"><p className="text-xs font-black uppercase tracking-wider" style={{color:store.primary_color}}>Nosso catalogo</p><h2 className="font-display mt-1 text-2xl font-extrabold">Todos os produtos</h2></div>{products?.length?<StoreCart storeId={store.id} storeSlug={slug} products={products} categories={categories||[]} whatsapp={store.whatsapp} color={store.primary_color}/>:<div className="grid h-64 place-items-center rounded-2xl border border-dashed border-slate-300 bg-white text-center text-slate-400"><div><ShoppingBag className="mx-auto mb-3"/><p className="font-bold">Novidades em breve</p></div></div>}</section>
-    <footer className="mt-16 border-t border-slate-200 bg-white py-8 text-center text-xs text-slate-400">Loja criada com MGD Catalogo PRO</footer>
+    <section className="mx-auto max-w-7xl px-5 py-6"><div className="flex min-h-64 items-center overflow-hidden rounded-3xl bg-cover bg-center p-8 text-white sm:p-12" style={store.banner_url?{backgroundColor:store.secondary_color,backgroundImage:`linear-gradient(90deg,rgba(15,30,22,.85),rgba(15,30,22,.2)),url(${store.banner_url})`}:{backgroundColor:store.secondary_color}}><div><p className="text-xs font-extrabold uppercase tracking-[.2em] text-white/50">Bem-vindo a nossa loja</p><h2 className="font-display mt-3 max-w-xl text-4xl font-extrabold sm:text-5xl">Produtos escolhidos com carinho para você.</h2><p className="mt-4 max-w-lg text-white/60">{store.description||"Explore nosso catálogo e faca seu pedido de forma simples pelo WhatsApp."}</p></div></div><div className="my-8"><p className="text-xs font-black uppercase tracking-wider" style={{color:store.primary_color}}>Nosso catálogo</p><h2 className="font-display mt-1 text-2xl font-extrabold">Todos os produtos</h2></div>{products?.length?<StoreCart storeId={store.id} storeSlug={slug} products={products} categories={categories||[]} whatsapp={store.whatsapp} color={store.primary_color}/>:<div className="grid h-64 place-items-center rounded-2xl border border-dashed border-slate-300 bg-white text-center text-slate-400"><div><ShoppingBag className="mx-auto mb-3"/><p className="font-bold">Novidades em breve</p></div></div>}</section>
+    <footer className="mt-16 border-t border-slate-200 bg-white py-8 text-center text-xs text-slate-400">Lojá criada com MGD Catálogo PRO</footer>
   </main>;
 }
+

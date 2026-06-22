@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import Image from "next/image";
 import { ArrowLeft, MessageCircle, Package, ShoppingBag } from "lucide-react";
 import { notFound } from "next/navigation";
@@ -23,7 +23,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const price = product ? Number(product.promotional_price || product.price) : 0;
   const stock = product ? getProductStock(product) : 0;
   const title = product && store ? `${product.name} | ${store.name}` : "Produto";
-  const description = product ? `${product.description || "Produto disponivel para pedido pelo WhatsApp."} ${price ? `A partir de ${formatCurrency(price)}.` : ""} ${stock > 0 ? "Disponivel em estoque." : "Produto sem estoque no momento."}` : "Produto do catalogo online";
+  const description = product ? `${product.description || "Produto disponivel para pedido pelo WhatsApp."} ${price ? `A partir de ${formatCurrency(price)}.` : ""} ${stock > 0 ? "Disponivel em estoque." : "Produto sem estoque no momento."}` : "Produto do catálogo online";
   const url = siteUrl(`/loja/${slug}/produto/${productSlug}`);
   return {
     title,
@@ -60,7 +60,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     "@context": "https://schema.org",
     "@type": "Product",
     name: product.name,
-    description: product.description || "Produto do catalogo online",
+    description: product.description || "Produto do catálogo online",
     image: images.map(image => image.url),
     sku: product.sku || undefined,
     brand: { "@type": "Brand", name: store.name },
@@ -91,7 +91,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     </header>
 
     <section className="mx-auto max-w-7xl px-5 py-8">
-      <Link href={`/loja/${store.slug}`} className="mb-6 inline-flex items-center gap-2 text-sm font-extrabold text-slate-500"><ArrowLeft size={17} />Voltar ao catalogo</Link>
+      <Link href={`/loja/${store.slug}`} className="mb-6 inline-flex items-center gap-2 text-sm font-extrabold text-slate-500"><ArrowLeft size={17} />Voltar ao catálogo</Link>
       <div className="grid gap-8 lg:grid-cols-[1.05fr_.95fr]">
         <div>
           <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white">
@@ -111,7 +111,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
               {product.sku && <span className="rounded-full bg-slate-100 px-3 py-1">SKU {product.sku}</span>}
               {product.weight && <span className="rounded-full bg-slate-100 px-3 py-1">{product.weight} kg</span>}
             </div>
-            <div className="mt-6 prose prose-slate max-w-none">
+            <div className="mt-6 prose prose-slaté max-w-none">
               <p className="whitespace-pre-line leading-8 text-slate-600">{product.description || "Produto disponivel para pedido pelo WhatsApp."}</p>
             </div>
           </section>
@@ -121,7 +121,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       </div>
 
       {(related as RelatedProduct[] | null)?.length ? <section className="mt-14">
-        <h3 className="font-display text-2xl font-extrabold">Voce tambem pode gostar</h3>
+        <h3 className="font-display text-2xl font-extrabold">Você também pode gostar</h3>
         <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {(related as RelatedProduct[]).map(item => {
             const image = item.product_images?.find(row => row.is_primary) || item.product_images?.[0];
@@ -144,3 +144,4 @@ function getProductStock(product: MetadataProduct) {
   if (variants.length) return variants.reduce((total, variant) => total + Number(variant.stock || 0), 0);
   return Number(product.stock || 0);
 }
+

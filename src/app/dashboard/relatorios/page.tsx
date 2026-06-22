@@ -1,4 +1,4 @@
-import { BarChart3, Eye, Package, ShoppingBag, TrendingUp, Users } from "lucide-react";
+﻿import { BarChart3, Eye, Package, ShoppingBag, TrendingUp, Users } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { formatCurrency } from "@/lib/utils";
 
@@ -85,8 +85,8 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
     <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
       <div>
         <p className="text-sm font-bold text-slate-400">INTELIGENCIA DA LOJA</p>
-        <h2 className="font-display mt-1 text-3xl font-extrabold">Relatorios</h2>
-        <p className="mt-2 text-slate-500">Acompanhe vendas, visitas e crescimento por periodo.</p>
+        <h2 className="font-display mt-1 text-3xl font-extrabold">Relatórios</h2>
+        <p className="mt-2 text-slate-500">Acompanhe vendas, visitas e crescimento por período.</p>
       </div>
       <form className="flex gap-2 rounded-2xl border border-slate-200 bg-white p-2">
         <select name="period" defaultValue={String(period)} className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm font-bold">
@@ -114,7 +114,7 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
       <section className="rounded-2xl border border-slate-200 bg-white p-6">
         <div>
           <h3 className="font-display text-lg font-extrabold">Movimento diario</h3>
-          <p className="mt-1 text-sm text-slate-500">Pedidos, visitas e novos clientes no periodo.</p>
+          <p className="mt-1 text-sm text-slate-500">Pedidos, visitas e novos clientes no período.</p>
         </div>
         <div className="mt-7 grid h-72 items-end gap-2 rounded-2xl bg-slate-50 p-4" style={{ gridTemplateColumns: `repeat(${period}, minmax(0, 1fr))` }}>
           {daily.map(day => <div key={day.key} className="flex h-full flex-col justify-end gap-1">
@@ -147,7 +147,7 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
             {statusRows.length ? statusRows.map(row => <div key={row.label} className="flex items-center justify-between rounded-xl bg-slate-50 px-4 py-3 text-sm">
               <span className="font-bold text-slate-600">{row.label}</span>
               <span className="font-extrabold">{row.count}</span>
-            </div>) : <p className="rounded-xl bg-slate-50 p-4 text-sm font-bold text-slate-400">Sem pedidos no periodo.</p>}
+            </div>) : <p className="rounded-xl bg-slate-50 p-4 text-sm font-bold text-slate-400">Sem pedidos no período.</p>}
           </div>
         </div>
       </section>
@@ -167,7 +167,7 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
         </div>) : <div className="grid min-h-40 place-items-center text-center text-slate-400">
           <div>
             <ShoppingBag className="mx-auto mb-3" />
-            <p className="font-bold">Nenhum produto vendido no periodo.</p>
+            <p className="font-bold">Nenhum produto vendido no período.</p>
           </div>
         </div>}
       </div>
@@ -263,8 +263,8 @@ function addDays(date: Date, days: number) {
 
 function EmptyStore() {
   return <div className="mx-auto max-w-2xl rounded-3xl border border-amber-200 bg-amber-50 p-8">
-    <h2 className="font-display text-2xl font-extrabold">Crie sua loja primeiro</h2>
-    <p className="mt-3 leading-7 text-slate-600">Depois do primeiro acesso, os relatorios passam a acompanhar sua loja automaticamente.</p>
+    <h2 className="font-display text-2xl font-extrabold">Crie sua lojá primeiro</h2>
+    <p className="mt-3 leading-7 text-slate-600">Depois do primeiro acesso, os relatorios passam a acompanhar sua lojá automáticamente.</p>
   </div>;
 }
 
@@ -274,3 +274,5 @@ function SetupRequired() {
     <p className="mt-3 leading-7 text-slate-600">Configure as variaveis do Supabase para visualizar dados reais.</p>
   </div>;
 }
+
+

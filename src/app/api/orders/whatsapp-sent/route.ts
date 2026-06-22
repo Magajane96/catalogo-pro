@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 
@@ -16,6 +16,7 @@ export async function POST(request: Request) {
     if (error) return NextResponse.json({ error: error.message }, { status: 400 });
     return NextResponse.json({ ok: Boolean(data) });
   } catch {
-    return NextResponse.json({ error: "Nao foi possivel atualizar o envio." }, { status: 400 });
+    return NextResponse.json({ error: "Não foi possível atualizar o envio." }, { status: 400 });
   }
 }
+
