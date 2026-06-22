@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/server";
 const uuidSchema = z.uuid();
 const orderStatusSchema = z.enum(["new", "in_progress", "picking", "finished", "delivered", "cancelled"]);
 const manualProDaysSchema = z.coerce.number().int().min(1).max(365);
+const fontFamilySchema = z.enum(["Manrope", "Inter", "Poppins", "Montserrat", "Nunito"]);
 
 export async function logout() {
   const supabase = await createClient(); await supabase?.auth.signOut(); redirect("/login");
@@ -16,9 +17,8 @@ export async function logout() {
 export async function createStore(formData: FormData) {
   const supabase = await createClient(); if (!supabase) throw new Error("Configure o Supabase primeiro.");
   const { data: { user } } = await supabase.auth.getUser(); if (!user) throw new Error("Sessao expirada.");
-  const name = String(formData.get("name") || "").trim();
-  const slug = String(formData.get("slug") || "").toLowerCase().trim().replace(/[^a-z0-9-]/g, "-").replace(/-+/g, "-");
-  const { data: store, error } = await supabase.from("stores").insert({ owner_id: user.id, name, slug, whatsapp: String(formData.get("whatsapp")), category: String(formData.get("category")), primary_color: String(formData.get("primary_color") || "#16a263"), published: true }).select("id").single();
+  const payload = readStorePayload(formData, true);
+  const { data: store, error } = await supabase.from("stores").insert({ owner_id: user.id, ...payload, published: true }).select("id").single();
   if (error) throw new Error(error.message);
   if (store) {
     const logoUrl = await uploadStoreAsset(supabase, store.id, formData.get("logo"), "logo");
@@ -29,21 +29,13 @@ export async function createStore(formData: FormData) {
 
 export async function updateStore(formData: FormData) {
   const supabase = await createClient(); if (!supabase) throw new Error("Configure o Supabase primeiro.");
-  const id = String(formData.get("id"));
-  const slug = String(formData.get("slug") || "").toLowerCase().trim().replace(/[^a-z0-9-]/g, "-").replace(/-+/g, "-").replace(/(^-|-$)/g, "");
+  const id = readRequiredUuid(formData, "id", "Loja");
   const [logoUrl, bannerUrl] = await Promise.all([
     uploadStoreAsset(supabase, id, formData.get("logo"), "logo"),
     uploadStoreAsset(supabase, id, formData.get("banner"), "banner"),
   ]);
   const payload: Record<string, string | boolean | null> = {
-    name: String(formData.get("name") || "").trim(),
-    slug,
-    description: String(formData.get("description") || "").trim(),
-    whatsapp: String(formData.get("whatsapp") || "").trim(),
-    category: String(formData.get("category") || "").trim(),
-    primary_color: String(formData.get("primary_color") || "#16a263"),
-    secondary_color: String(formData.get("secondary_color") || "#14261d"),
-    font_family: String(formData.get("font_family") || "Manrope"),
+    ...readStorePayload(formData),
     published: formData.get("published") === "on",
     updated_at: new Date().toISOString(),
   };
@@ -56,7 +48,7 @@ export async function updateStore(formData: FormData) {
   revalidatePath("/dashboard");
   revalidatePath("/dashboard/personalizar");
   revalidatePath("/dashboard/configuracoes");
-  revalidatePath(`/loja/${slug}`);
+  revalidatePath(`/loja/${payload.slug}`);
 }
 
 export async function createProduct(formData: FormData) {
@@ -347,4 +339,45 @@ function readNonNegativeInt(formData: FormData, field: string, label: string) {
 function buildProductSlug(name: string) {
   const base = name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
   return `${base || "produto"}-${Date.now().toString(36)}`;
+}
+
+function readStorePayload(formData: FormData, creating = false) {
+  const name = readText(formData, "name", 2, 100, "Nome da loja");
+  const requestedSlug = String(formData.get("slug") || "").trim() || name;
+  const slug = normalizeSlug(requestedSlug);
+  if (slug.length < 3) throw new Error("Slug da loja invalido.");
+  const fontResult = fontFamilySchema.safeParse(String(formData.get("font_family") || "Manrope"));
+  return {
+    name,
+    slug,
+    description: readText(formData, "description", 0, 600, "Descricao da loja"),
+    whatsapp: readPhoneDigits(formData, "whatsapp", "WhatsApp"),
+    category: readText(formData, "category", 2, 80, "Categoria"),
+    primary_color: readHexColor(formData, "primary_color", "#16a263"),
+    secondary_color: readHexColor(formData, "secondary_color", "#14261d"),
+    font_family: fontResult.success ? fontResult.data : "Manrope",
+    ...(creating ? { seo_title: null, seo_description: null } : {}),
+  };
+}
+
+function normalizeSlug(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9-]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/(^-|-$)/g, "")
+    .slice(0, 80);
+}
+
+function readPhoneDigits(formData: FormData, field: string, label: string) {
+  const digits = String(formData.get(field) || "").replace(/\D/g, "");
+  if (digits.length < 8 || digits.length > 20) throw new Error(`${label} invalido.`);
+  return digits;
+}
+
+function readHexColor(formData: FormData, field: string, fallback: string) {
+  const value = String(formData.get(field) || fallback).trim();
+  return /^#[0-9a-fA-F]{6}$/.test(value) ? value : fallback;
 }
