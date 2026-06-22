@@ -129,7 +129,7 @@ export default async function AdminPage() {
           </div>) : <div className="grid min-h-40 place-items-center text-center text-slate-400">
             <div>
               <Store className="mx-auto mb-3" />
-              <p className="font-bold">Nenhuma lojá criada ainda.</p>
+              <p className="font-bold">Nenhuma loja criada ainda.</p>
             </div>
           </div>}
         </div>
@@ -216,4 +216,5 @@ function SetupRequired() {
     <p className="mt-3 leading-7 text-slate-600">Configure as variaveis do Supabase para acessar o painel administrativo.</p>
   </div>;
 }
+
 

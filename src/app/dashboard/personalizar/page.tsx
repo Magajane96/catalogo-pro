@@ -84,7 +84,7 @@ export default async function PersonalizePage() {
           </div>
           <label className="mt-5 flex items-center gap-3 rounded-xl bg-slate-50 p-4 text-sm font-bold">
             <input name="published" type="checkbox" defaultChecked={store.published} className="size-5 accent-emerald-600" />
-            Lojá publicada
+            Loja publicada
           </label>
         </section>
       </div>
@@ -123,8 +123,9 @@ function ImagePickerLabel({ title }: { title: string }) {
 
 function EmptyStore() {
   return <div className="mx-auto max-w-2xl rounded-3xl border border-amber-200 bg-amber-50 p-8">
-    <h2 className="font-display text-2xl font-extrabold">Crie sua lojá primeiro</h2>
+    <h2 className="font-display text-2xl font-extrabold">Crie sua loja primeiro</h2>
     <p className="mt-3 leading-7 text-slate-600">Depois do primeiro acesso, está tela libera a personalizacao completa da vitrine.</p>
   </div>;
 }
+
 

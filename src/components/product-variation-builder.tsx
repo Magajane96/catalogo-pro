@@ -50,7 +50,7 @@ export function ProductVariationBuilder({ initialOptions, initialVariants, input
     <section className="rounded-2xl border border-slate-200 bg-white p-6">
       <div>
         <h3 className="font-display text-lg font-extrabold">Variacoes</h3>
-        <p className="mt-1 text-sm text-slate-500">Cadastre opcoes como Cor, Tamanho ou Modelo. Separe os valores por virgula.</p>
+        <p className="mt-1 text-sm text-slate-500">Cadastre opções como Cor, Tamanho ou Modelo. Separe os valores por vírgula.</p>
       </div>
       <div className="mt-5 space-y-5">
         {options.map((option, index) => {
@@ -79,7 +79,7 @@ export function ProductVariationBuilder({ initialOptions, initialVariants, input
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
         <div>
           <h3 className="font-display text-lg font-extrabold">Estoque por variante</h3>
-          <p className="mt-1 text-sm text-slate-500">Gere combinacoes a partir das opcoes ou ajuste manualmente cada linha.</p>
+          <p className="mt-1 text-sm text-slate-500">Gere combinações a partir das opções ou ajuste manualmente cada linha.</p>
         </div>
         <div className="flex gap-2">
           <button type="button" onClick={generateVariants} className="inline-flex h-10 items-center gap-2 rounded-xl bg-emerald-50 px-3 text-sm font-extrabold text-brand"><Wand2 size={16} />Gerar</button>
@@ -155,4 +155,5 @@ function splitCsv(value: string) {
 function combine(groups: string[][]): string[][] {
   return groups.reduce<string[][]>((acc, group) => acc.flatMap(items => group.map(item => [...items, item])), [[]]);
 }
+
 

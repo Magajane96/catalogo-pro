@@ -30,22 +30,23 @@ type Product = {
 
 export function ProductForm({ categories, product }: { categories: Category[]; product?: Product }) {
   const editing = Boolean(product);
-  const input = "h-12 w-full rounded-xl border border-slate-200 bg-white px-4 outline-none transition focus:border-brand focus:ring-4 focus:ring-emerald-100";
+  const input = "input-premium h-12 w-full rounded-2xl px-4";
   const options = [...(product?.product_options || [])].sort((a, b) => a.position - b.position);
   const variants = product?.product_variants || [];
 
   return <div className="mx-auto max-w-5xl">
     <Link href="/dashboard/produtos" className="mb-5 inline-flex items-center gap-2 text-sm font-bold text-slate-500"><ArrowLeft size={17} />Voltar para produtos</Link>
-    <div>
-      <p className="text-sm font-bold text-slate-400">{editing ? "EDITAR ITEM" : "NOVO ITEM"}</p>
-      <h2 className="font-display mt-1 text-3xl font-extrabold">{editing ? "Editar produto" : "Cadastrar produto"}</h2>
+    <div className="premium-panel rounded-3xl p-6">
+      <p className="text-xs font-extrabold uppercase tracking-[.2em] text-brand">{editing ? "Editar item" : "Novo item"}</p>
+      <h2 className="font-display mt-2 text-3xl font-extrabold">{editing ? "Editar produto" : "Cadastrar produto"}</h2>
+      <p className="mt-2 text-slate-500">Organize as informações comerciais e visuais do produto com acabamento profissional.</p>
     </div>
 
     <form action={editing ? updateProduct : createProduct} className="mt-7 grid gap-6 lg:grid-cols-[1fr_330px]" encType="multipart/form-data">
       {product && <input type="hidden" name="id" value={product.id} />}
 
       <div className="space-y-6">
-        <section className="rounded-2xl border border-slate-200 bg-white p-6">
+        <section className="premium-card rounded-3xl p-6">
           <h3 className="font-display text-lg font-extrabold">Informações principais</h3>
           <div className="mt-5 space-y-5">
             <label className="block">
@@ -61,15 +62,15 @@ export function ProductForm({ categories, product }: { categories: Category[]; p
             </label>
             <label className="block">
               <span className="mb-2 block text-sm font-bold">Descrição</span>
-              <textarea name="description" rows={6} defaultValue={product?.description} className="w-full rounded-xl border border-slate-200 p-4 outline-none focus:border-brand" placeholder="Conte os detalhes, materiais e diferenciais..." />
+              <textarea name="description" rows={6} defaultValue={product?.description} className="input-premium w-full rounded-2xl p-4" placeholder="Conte os detalhes, materiais e diferenciais..." />
             </label>
           </div>
         </section>
 
-        <section className="rounded-2xl border border-slate-200 bg-white p-6">
+        <section className="premium-card rounded-3xl p-6">
           <h3 className="font-display text-lg font-extrabold">Fotos do produto</h3>
           {product?.product_images?.length ? <ProductImageManager productId={product.id} images={product.product_images} /> : null}
-          <label className="mt-5 grid min-h-40 cursor-pointer place-items-center rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 text-center">
+          <label className="mt-5 grid min-h-40 cursor-pointer place-items-center rounded-3xl border-2 border-dashed border-slate-200 bg-slate-50 text-center transition hover:border-emerald-300 hover:bg-emerald-50/40">
             <input type="file" name="images" multiple accept="image/png,image/jpeg,image/webp" className="sr-only" />
             <div className="text-slate-400">
               <ImagePlus className="mx-auto mb-2" />
@@ -83,7 +84,7 @@ export function ProductForm({ categories, product }: { categories: Category[]; p
       </div>
 
       <div className="space-y-6">
-        <section className="rounded-2xl border border-slate-200 bg-white p-6">
+        <section className="premium-card rounded-3xl p-6">
           <h3 className="font-display text-lg font-extrabold">Preço e estoque</h3>
           <div className="mt-5 space-y-4">
             <label className="block">
@@ -104,7 +105,7 @@ export function ProductForm({ categories, product }: { categories: Category[]; p
             </label>
             <label className="block">
               <span className="mb-2 block text-sm font-bold">Código interno</span>
-              <input name="internal_code" defaultValue={product?.internal_code || ""} className={input} placeholder="Seu codigo" />
+              <input name="internal_code" defaultValue={product?.internal_code || ""} className={input} placeholder="Seu código" />
             </label>
             <label className="block">
               <span className="mb-2 block text-sm font-bold">Peso em kg</span>
@@ -116,7 +117,7 @@ export function ProductForm({ categories, product }: { categories: Category[]; p
             </label>
           </div>
         </section>
-        <button className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-brand font-extrabold text-white"><Save size={18} />{editing ? "Salvar alteracoes" : "Salvar e publicar"}</button>
+        <button className="flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-brand font-extrabold text-white shadow-lg shadow-emerald-700/20 transition hover:-translate-y-0.5"><Save size={18} />{editing ? "Salvar alterações" : "Salvar e publicar"}</button>
       </div>
     </form>
   </div>;

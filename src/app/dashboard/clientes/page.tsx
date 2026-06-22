@@ -61,7 +61,7 @@ export default async function CustomersPage({ searchParams }: { searchParams: Pr
     <div>
       <p className="text-sm font-bold text-slate-400">RELACIONAMENTO</p>
       <h2 className="font-display mt-1 text-3xl font-extrabold">Clientes</h2>
-      <p className="mt-2 text-slate-500">Contatos cadastrados automáticamente a partir dos pedidos.</p>
+      <p className="mt-2 text-slate-500">Contatos cadastrados automaticamente a partir dos pedidos.</p>
     </div>
 
     <div className="mt-7 grid gap-3 sm:grid-cols-4">
@@ -226,4 +226,5 @@ function normalizeBrazilPhone(value: string) {
 function formatDate(value: string) {
   return new Date(value).toLocaleDateString("pt-BR");
 }
+
 

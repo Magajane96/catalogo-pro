@@ -54,7 +54,7 @@ export async function updateStore(formData: FormData) {
 export async function createProduct(formData: FormData) {
   const supabase = await createClient(); if (!supabase) throw new Error("Configure o Supabase primeiro.");
   const { data: store } = await supabase.from("stores").select("id").single();
-  if (!store) throw new Error("Crie sua lojá antes de cadastrar produtos.");
+  if (!store) throw new Error("Crie sua loja antes de cadastrar produtos.");
   const payload = readProductPayload(formData);
   const slug = buildProductSlug(payload.name);
   const { data: product, error } = await supabase.from("products").insert({ store_id: store.id, slug, ...payload }).select("id").single();
@@ -196,7 +196,7 @@ export async function updateProductImages(formData: FormData) {
 
 export async function createCategory(formData: FormData) {
   const supabase = await createClient(); if (!supabase) throw new Error("Configure o Supabase primeiro.");
-  const { data: store } = await supabase.from("stores").select("id").single(); if (!store) throw new Error("Lojá não encontrada.");
+  const { data: store } = await supabase.from("stores").select("id").single(); if (!store) throw new Error("Loja não encontrada.");
   const category = readCategoryPayload(formData);
   const { error } = await supabase.from("categories").insert({ store_id: store.id, ...category });
   if (error) throw new Error(error.message); await revalidateCategoryPaths(supabase);
@@ -259,7 +259,7 @@ export async function deleteProduct(formData: FormData) {
 
 function readRequiredUuid(formData: FormData, field: string, label: string) {
   const result = uuidSchema.safeParse(String(formData.get(field) || ""));
-  if (!result.success) throw new Error(`${label} invalido.`);
+  if (!result.success) throw new Error(`${label} inválido.`);
   return result.data;
 }
 
@@ -272,7 +272,7 @@ function readOptionalUuid(formData: FormData, field: string) {
 
 function readOrderStatus(formData: FormData) {
   const result = orderStatusSchema.safeParse(String(formData.get("status") || ""));
-  if (!result.success) throw new Error("Status de pedido invalido.");
+  if (!result.success) throw new Error("Status de pedido inválido.");
   return result.data;
 }
 
@@ -314,13 +314,13 @@ function readProductPayload(formData: FormData) {
 
 function readText(formData: FormData, field: string, min: number, max: number, label: string) {
   const value = String(formData.get(field) || "").normalize("NFKC").trim().slice(0, max);
-  if (value.length < min) throw new Error(`${label} invalido.`);
+  if (value.length < min) throw new Error(`${label} inválido.`);
   return value;
 }
 
 function readMoney(formData: FormData, field: string, label: string) {
   const value = Number(String(formData.get(field) || "").replace(",", "."));
-  if (!Number.isFinite(value) || value < 0) throw new Error(`${label} invalido.`);
+  if (!Number.isFinite(value) || value < 0) throw new Error(`${label} inválido.`);
   return Math.round(value * 100) / 100;
 }
 
@@ -332,7 +332,7 @@ function readOptionalMoney(formData: FormData, field: string, label: string) {
 
 function readNonNegativeInt(formData: FormData, field: string, label: string) {
   const value = Number(formData.get(field) || 0);
-  if (!Number.isInteger(value) || value < 0) throw new Error(`${label} invalido.`);
+  if (!Number.isInteger(value) || value < 0) throw new Error(`${label} inválido.`);
   return value;
 }
 
@@ -345,7 +345,7 @@ function readStorePayload(formData: FormData, creating = false) {
   const name = readText(formData, "name", 2, 100, "Nome da loja");
   const requestedSlug = String(formData.get("slug") || "").trim() || name;
   const slug = normalizeSlug(requestedSlug);
-  if (slug.length < 3) throw new Error("Slug da lojá invalido.");
+  if (slug.length < 3) throw new Error("Slug da loja inválido.");
   const fontResult = fontFamilySchema.safeParse(String(formData.get("font_family") || "Manrope"));
   return {
     name,
@@ -373,7 +373,7 @@ function normalizeSlug(value: string) {
 
 function readPhoneDigits(formData: FormData, field: string, label: string) {
   const digits = String(formData.get(field) || "").replace(/\D/g, "");
-  if (digits.length < 8 || digits.length > 20) throw new Error(`${label} invalido.`);
+  if (digits.length < 8 || digits.length > 20) throw new Error(`${label} inválido.`);
   return digits;
 }
 
@@ -381,5 +381,6 @@ function readHexColor(formData: FormData, field: string, fallback: string) {
   const value = String(formData.get(field) || fallback).trim();
   return /^#[0-9a-fA-F]{6}$/.test(value) ? value : fallback;
 }
+
 
 

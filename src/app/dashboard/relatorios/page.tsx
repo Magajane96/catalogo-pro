@@ -263,8 +263,8 @@ function addDays(date: Date, days: number) {
 
 function EmptyStore() {
   return <div className="mx-auto max-w-2xl rounded-3xl border border-amber-200 bg-amber-50 p-8">
-    <h2 className="font-display text-2xl font-extrabold">Crie sua lojá primeiro</h2>
-    <p className="mt-3 leading-7 text-slate-600">Depois do primeiro acesso, os relatorios passam a acompanhar sua lojá automáticamente.</p>
+    <h2 className="font-display text-2xl font-extrabold">Crie sua loja primeiro</h2>
+    <p className="mt-3 leading-7 text-slate-600">Depois do primeiro acesso, os relatorios passam a acompanhar sua loja automaticamente.</p>
   </div>;
 }
 
@@ -274,5 +274,6 @@ function SetupRequired() {
     <p className="mt-3 leading-7 text-slate-600">Configure as variaveis do Supabase para visualizar dados reais.</p>
   </div>;
 }
+
 
 

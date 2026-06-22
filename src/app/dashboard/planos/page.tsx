@@ -40,7 +40,7 @@ export default async function PlansPage() {
           <span className={`grid size-12 place-items-center rounded-xl ${plan === "pro" ? "bg-emerald-50 text-brand" : "bg-slate-100 text-slate-600"}`}>{plan === "pro" ? <Sparkles size={22} /> : <CreditCard size={22} />}</span>
           <div>
             <h3 className="font-display text-xl font-extrabold">Plano atual: {plan === "pro" ? "PRO" : "Grátis"}</h3>
-            <p className="mt-1 text-sm font-semibold text-slate-500">{plan === "pro" ? "Sua lojá está com recursos avancados liberados." : "Comece sem custo e evolua quando precisar de mais capacidade."}</p>
+            <p className="mt-1 text-sm font-semibold text-slate-500">{plan === "pro" ? "Sua loja está com recursos avançados liberados." : "Comece sem custo e evolua quando precisar de mais capacidade."}</p>
           </div>
         </div>
         <span className={`rounded-full px-4 py-2 text-sm font-black ${plan === "pro" ? "bg-emerald-50 text-brand" : "bg-slate-100 text-slate-600"}`}>{plan === "pro" ? "Ativo" : "Free"}</span>
@@ -65,7 +65,7 @@ export default async function PlansPage() {
             <div className={`h-full rounded-full ${productUsage >= productLimit ? "bg-amber-500" : "bg-brand"}`} style={{ width: `${usagePercent}%` }} />
           </div>
           <p className="mt-3 text-sm font-semibold text-slate-500">{plan === "pro" ? "No PRO, este limite deixa de restringir seus cadastros." : `${Math.max(0, productLimit - productUsage)} produtos restantes no plano grátis.`}</p>
-          {nearLimit && <p className="mt-3 flex items-center gap-2 rounded-xl bg-amber-50 px-3 py-2 text-sm font-bold text-amber-700"><AlertTriangle size={16} />Sua lojá está perto do limite gratuito.</p>}
+          {nearLimit && <p className="mt-3 flex items-center gap-2 rounded-xl bg-amber-50 px-3 py-2 text-sm font-bold text-amber-700"><AlertTriangle size={16} />Sua loja está perto do limite gratuito.</p>}
         </div>
         <div className="mt-5 grid gap-3 sm:grid-cols-2">
           <UsageCard icon={Store} label="Lojas" value="1 / 1" />
@@ -80,7 +80,7 @@ export default async function PlansPage() {
           <div>
             <span className="rounded-full bg-emerald-400 px-3 py-1 text-[10px] font-black uppercase text-[#14261d]">Estrutura pronta</span>
             <h3 className="font-display mt-4 text-2xl font-extrabold">Plano PRO</h3>
-            <p className="mt-2 text-sm leading-6 text-white/60">A base do banco agora suporta assinaturas e sincroniza o plano do perfil automáticamente.</p>
+            <p className="mt-2 text-sm leading-6 text-white/60">A base do banco agora suporta assinaturas e sincroniza o plano do perfil automaticamente.</p>
           </div>
           <Sparkles className="text-emerald-400" />
         </div>
@@ -140,4 +140,5 @@ function getSubscriptionStatus(status?: string) {
   };
   return status ? labels[status] || status : "Sem assinatura";
 }
+
 

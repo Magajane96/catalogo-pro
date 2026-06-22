@@ -16,7 +16,7 @@ export default async function SettingsPage() {
   const storeUrl = `${protocol}://${host}/loja/${store.slug}`;
   const input = "h-12 w-full rounded-xl border border-slate-200 bg-white px-4 outline-none transition focus:border-brand focus:ring-4 focus:ring-emerald-100";
   const checklist = [
-    { label: "Lojá publicada", done: store.published },
+    { label: "Loja publicada", done: store.published },
     { label: "WhatsApp configurado", done: store.whatsapp.replace(/\D/g, "").length >= 10 },
     { label: "Descrição da loja", done: Boolean(store.description?.trim()) },
     { label: "Titulo SEO", done: Boolean((store.seo_title || store.name).trim()) },
@@ -27,7 +27,7 @@ export default async function SettingsPage() {
     { label: "Supabase URL configurada", done: Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL?.trim()) },
     { label: "Supabase anon key configurada", done: Boolean(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim()) },
     { label: "Dominio HTTPS em uso", done: protocol === "https" },
-    { label: "Lojá publicada para indexacao", done: store.published },
+    { label: "Loja publicada para indexação", done: store.published },
   ];
   const readyItems = checklist.filter(item => item.done).length;
   const deployReadyItems = deployChecklist.filter(item => item.done).length;
@@ -62,7 +62,7 @@ export default async function SettingsPage() {
             <span className="grid size-11 place-items-center rounded-xl bg-emerald-50 text-brand"><Search size={20} /></span>
             <div>
               <h3 className="font-display text-lg font-extrabold">SEO automático</h3>
-              <p className="text-sm text-slate-500">Personalize como sua lojá aparece ao compartilhar o link.</p>
+              <p className="text-sm text-slate-500">Personalize como sua loja aparece ao compartilhar o link.</p>
             </div>
           </div>
           <div className="mt-6 space-y-5">
@@ -95,7 +95,7 @@ export default async function SettingsPage() {
             </div>
             <label className="mt-6 flex items-center gap-3 rounded-xl bg-slate-50 p-4 text-sm font-bold">
               <input name="published" type="checkbox" defaultChecked={store.published} className="size-5 accent-emerald-600" />
-              Lojá publicada
+              Loja publicada
             </label>
             <button className="mt-5 flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-brand font-extrabold text-white"><Save size={18} />Salvar ajustes</button>
           </section>
@@ -146,9 +146,10 @@ export default async function SettingsPage() {
 
 function EmptyStore() {
   return <div className="mx-auto max-w-2xl rounded-3xl border border-amber-200 bg-amber-50 p-8">
-    <h2 className="font-display text-2xl font-extrabold">Crie sua lojá primeiro</h2>
+    <h2 className="font-display text-2xl font-extrabold">Crie sua loja primeiro</h2>
     <p className="mt-3 leading-7 text-slate-600">Depois do primeiro acesso, está tela mostra seu link, QR Code e configuracoes públicas.</p>
   </div>;
 }
+
 
 

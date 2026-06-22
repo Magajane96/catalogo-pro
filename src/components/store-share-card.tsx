@@ -11,7 +11,7 @@ export function StoreShareCard({ storeUrl, color }: { storeUrl: string; color: s
 
   async function copyLink() {
     await navigator.clipboard.writeText(storeUrl);
-    toast.success("Link da lojá copiado.");
+    toast.success("Link da loja copiado.");
   }
 
   function downloadQrCode() {
@@ -45,4 +45,5 @@ export function StoreShareCard({ storeUrl, color }: { storeUrl: string; color: s
     </div>
   </section>;
 }
+
 
