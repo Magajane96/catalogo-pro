@@ -118,8 +118,12 @@ export default async function AdminPage() {
             <div className="flex flex-wrap gap-2">
               <form action={grantManualPro}>
                 <input type="hidden" name="profile_id" value={store.owner_id} />
-                <input type="hidden" name="days" value="30" />
-                <button className="h-9 rounded-xl bg-emerald-50 px-3 text-xs font-black text-brand hover:bg-emerald-100">{store.owner?.plan === "pro" ? "Renovar" : "Liberar PRO"}</button>
+                <select name="days" defaultValue="30" aria-label="Prazo do PRO manual" className="h-9 rounded-xl border border-slate-200 bg-white px-2 text-xs font-black text-slate-600 outline-none focus:border-brand">
+                  <option value="30">30 dias</option>
+                  <option value="90">90 dias</option>
+                  <option value="365">1 ano</option>
+                </select>
+                <button className="ml-2 h-9 rounded-xl bg-emerald-50 px-3 text-xs font-black text-brand hover:bg-emerald-100">{store.owner?.plan === "pro" ? "Renovar" : "Liberar PRO"}</button>
               </form>
               {store.owner?.plan === "pro" && <form action={revokeManualPro}>
                 <input type="hidden" name="profile_id" value={store.owner_id} />
