@@ -20,6 +20,7 @@ export default async function PlansPage() {
   const nearLimit = plan === "free" && productUsage >= 16;
   const subscriptionStatus = getSubscriptionStatus(subscription?.status);
   const periodEnd = subscription?.current_period_end ? new Date(subscription.current_period_end).toLocaleDateString("pt-BR") : null;
+  const upgradeUrl = buildUpgradeWhatsAppUrl();
   const customizationItems = [
     { label: "Cores da marca", done: Boolean(store?.primary_color) },
     { label: "Fonte personalizada", done: Boolean(store?.font_family) },
@@ -31,7 +32,7 @@ export default async function PlansPage() {
     <div>
       <p className="text-sm font-bold text-slate-400">ASSINATURA</p>
       <h2 className="font-display mt-1 text-3xl font-extrabold">Planos</h2>
-      <p className="mt-2 text-slate-500">Acompanhe seus limites e vejá o que muda no MGD Catálogo PRO.</p>
+      <p className="mt-2 text-slate-500">Acompanhe seus limites e veja o que muda no MGD Catálogo PRO.</p>
     </div>
 
     <section className="mt-8 rounded-2xl border border-slate-200 bg-white p-6">
@@ -102,7 +103,7 @@ export default async function PlansPage() {
         <div className="mt-7 grid gap-3">
           {["Produtos ilimitados", "Categorias ilimitadas", "Variantes ilimitadas", "QR Code e link da loja", "Personalizacao completa"].map(item => <p key={item} className="flex items-center gap-2 text-sm font-bold"><Check size={17} className="text-emerald-400" />{item}</p>)}
         </div>
-        {plan === "pro" ? <Link href="/dashboard/personalizar" className="mt-8 flex h-12 w-full items-center justify-center rounded-xl bg-emerald-400 text-sm font-extrabold text-[#14261d]">Aproveitar recursos PRO</Link> : <a href={`https://wa.me/?text=${encodeURIComponent("Olá! Quero saber como ativar o Plano PRO do MGD Catálogo PRO.")}`} target="_blank" rel="noreferrer" className="mt-8 flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-emerald-400 text-sm font-extrabold text-[#14261d]"><MessageCircle size={17} />Solicitar upgrade PRO</a>}
+        {plan === "pro" ? <Link href="/dashboard/personalizar" className="mt-8 flex h-12 w-full items-center justify-center rounded-xl bg-emerald-400 text-sm font-extrabold text-[#14261d]">Aproveitar recursos PRO</Link> : <a href={upgradeUrl} target="_blank" rel="noreferrer" className="mt-8 flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-emerald-400 text-sm font-extrabold text-[#14261d]"><MessageCircle size={17} />Solicitar upgrade PRO</a>}
       </section>
     </div>
 
@@ -139,6 +140,13 @@ function getSubscriptionStatus(status?: string) {
     expired: "Expirada",
   };
   return status ? labels[status] || status : "Sem assinatura";
+}
+
+function buildUpgradeWhatsAppUrl() {
+  const message = "Olá! Quero saber como ativar o Plano PRO do MGD Catálogo PRO.";
+  const phone = process.env.NEXT_PUBLIC_PRO_UPGRADE_WHATSAPP?.replace(/\D/g, "");
+  const target = phone ? `https://wa.me/${phone}` : "https://wa.me/";
+  return `${target}?text=${encodeURIComponent(message)}`;
 }
 
 

@@ -20,6 +20,7 @@ O projeto foi pensado para pequenos empreendedores criarem uma loja independente
    - `NEXT_PUBLIC_SUPABASE_URL`
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
    - `NEXT_PUBLIC_SITE_URL` usado por metadata, robots e sitemap
+   - `NEXT_PUBLIC_PRO_UPGRADE_WHATSAPP` opcional, usado no botao de upgrade PRO
 4. Execute as migracoes em ordem no SQL Editor do Supabase:
    - `202606150001_initial_schema.sql`
    - `202606150002_public_checkout.sql`
@@ -75,6 +76,7 @@ npm run dev
    - `NEXT_PUBLIC_SUPABASE_URL`
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
    - `NEXT_PUBLIC_SITE_URL` com a URL de producao
+   - `NEXT_PUBLIC_PRO_UPGRADE_WHATSAPP` com o WhatsApp comercial para pedidos de upgrade
 3. No Supabase Auth, adicione as URLs de callback da Vercel:
    - `https://seu-dominio.com/auth/callback`
    - `https://seu-dominio.com/auth/callback?next=/auth/redefinir-senha`
@@ -95,6 +97,7 @@ Antes de vender para clientes reais, confirme:
 - Buckets `store-assets` e `product-images` criados pelas migracoes.
 - Redirect URLs do Supabase Auth configuradas para localhost e dominio final.
 - Variaveis `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` e `NEXT_PUBLIC_SITE_URL` configuradas na Vercel.
+- `NEXT_PUBLIC_PRO_UPGRADE_WHATSAPP` configurado se o upgrade PRO for vendido pelo WhatsApp.
 - Dominio final usando HTTPS.
 - Usuario administrador criado em `profiles.role = 'admin'`.
 - Loja teste criada, publicada e com QR Code/link funcionando.
