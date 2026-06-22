@@ -211,7 +211,10 @@ export async function updateCategory(formData: FormData) {
 
 export async function deleteCategory(formData: FormData) {
   const supabase = await createClient(); if (!supabase) return;
-  await supabase.from("categories").delete().eq("id", readRequiredUuid(formData, "id", "Categoria")); await revalidateCategoryPaths(supabase);
+  const id = readRequiredUuid(formData, "id", "Categoria");
+  const { count } = await supabase.from("products").select("id", { count: "exact", head: true }).eq("category_id", id);
+  if (count) throw new Error("Mova ou edite os produtos desta categoria antes de excluir.");
+  await supabase.from("categories").delete().eq("id", id); await revalidateCategoryPaths(supabase);
 }
 
 async function revalidateCategoryPaths(supabase: NonNullable<Awaited<ReturnType<typeof createClient>>>) {

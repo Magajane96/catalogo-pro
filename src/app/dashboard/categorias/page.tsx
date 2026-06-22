@@ -92,13 +92,15 @@ export default async function CategoriesPage({ searchParams }: { searchParams: P
               <p className="mt-4 font-extrabold">{search || selectedFilter !== "all" ? "Nenhuma categoria encontrada" : "Nenhuma categoria cadastrada"}</p>
               <p className="mt-1 text-sm text-slate-400">{search || selectedFilter !== "all" ? "Ajuste a busca ou os filtros." : "Crie a primeira ao lado."}</p>
             </div>
-          </div> : rows.map(category => <form action={updateCategory} key={category.id} className="grid items-center gap-3 border-b border-slate-100 p-4 last:border-0 sm:grid-cols-[44px_1fr_90px_76px_100px]">
+          </div> : rows.map(category => {
+            const productsInCategory = categoryProducts(category);
+            return <form action={updateCategory} key={category.id} className="grid items-center gap-3 border-b border-slate-100 p-4 last:border-0 sm:grid-cols-[44px_1fr_90px_76px_100px]">
             <input type="hidden" name="id" value={category.id} />
             <input type="hidden" name="icon" value={category.icon || "Tag"} />
             <span className="grid size-11 place-items-center rounded-xl text-white" style={{ background: category.color }}><Tag size={19} /></span>
             <div>
               <input name="name" defaultValue={category.name} className="h-9 w-full rounded-lg border border-transparent px-2 font-bold outline-none hover:border-slate-200 focus:border-brand" />
-              <p className="px-2 text-[11px] font-bold text-slate-400">{categoryProducts(category)} produtos</p>
+              <p className="px-2 text-[11px] font-bold text-slate-400">{productsInCategory} produtos</p>
             </div>
             <input name="color" type="color" defaultValue={category.color} className="h-9 w-full cursor-pointer rounded-lg border border-slate-200 bg-white p-1" />
             <label className="flex items-center gap-2 text-xs font-bold text-slate-500">
@@ -106,9 +108,10 @@ export default async function CategoriesPage({ searchParams }: { searchParams: P
             </label>
             <div className="flex justify-end gap-1">
               <button className="rounded-lg bg-slate-100 px-3 py-2 text-xs font-extrabold">Salvar</button>
-              <button formAction={deleteCategory} className="grid size-8 place-items-center rounded-lg text-red-500 hover:bg-red-50"><Trash2 size={16} /></button>
+              <button formAction={deleteCategory} disabled={productsInCategory > 0} title={productsInCategory > 0 ? "Remova ou mova os produtos antes de excluir." : "Excluir categoria"} className="grid size-8 place-items-center rounded-lg text-red-500 hover:bg-red-50 disabled:cursor-not-allowed disabled:text-slate-300 disabled:hover:bg-transparent"><Trash2 size={16} /></button>
             </div>
-          </form>)}
+          </form>;
+          })}
         </div>
       </section>
     </div>
