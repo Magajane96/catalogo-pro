@@ -1,10 +1,12 @@
 import { notFound } from "next/navigation";
 import { CreditCard, Package, ShieldCheck, ShoppingBag, Sparkles, Store, Users } from "lucide-react";
+import { grantManualPro } from "@/app/dashboard/actions";
 import { createClient } from "@/lib/supabase/server";
 import { formatCurrency } from "@/lib/utils";
 
 type StoreRow = {
   id: string;
+  owner_id: string;
   name: string;
   slug: string;
   category: string;
@@ -36,7 +38,7 @@ export default async function AdminPage() {
     supabase.from("profiles").select("id", { count: "exact", head: true }),
     supabase.from("products").select("id", { count: "exact", head: true }),
     supabase.from("orders").select("id,total"),
-    supabase.from("stores").select("id,name,slug,category,published,created_at,profiles(name,plan)").order("created_at", { ascending: false }).limit(8),
+    supabase.from("stores").select("id,owner_id,name,slug,category,published,created_at,profiles(name,plan)").order("created_at", { ascending: false }).limit(8),
     supabase.from("profiles").select("plan"),
     supabase.from("subscriptions").select("status,plan,current_period_end"),
     supabase.from("subscriptions").select("id,status,plan,provider,current_period_end,created_at,profiles(name,plan)").order("created_at", { ascending: false }).limit(6),
@@ -106,13 +108,18 @@ export default async function AdminPage() {
       <section className="rounded-2xl border border-slate-200 bg-white p-6">
         <h3 className="font-display text-lg font-extrabold">Lojas recentes</h3>
         <div className="mt-5 overflow-hidden rounded-2xl border border-slate-100">
-          {storesList.length ? storesList.map(store => <div key={store.id} className="grid gap-3 border-b border-slate-100 p-4 last:border-0 sm:grid-cols-[1fr_120px_110px] sm:items-center">
+          {storesList.length ? storesList.map(store => <div key={store.id} className="grid gap-3 border-b border-slate-100 p-4 last:border-0 sm:grid-cols-[1fr_120px_110px_150px] sm:items-center">
             <div>
               <p className="font-extrabold">{store.name}</p>
               <p className="mt-1 text-xs font-bold text-slate-400">/{store.slug} - {store.category} - {store.owner?.name || "Sem nome"}</p>
             </div>
             <span className="text-sm font-bold text-slate-500">{store.owner?.plan === "pro" ? "PRO" : "Gratis"}</span>
             <span className={`rounded-full px-3 py-1 text-center text-xs font-black ${store.published ? "bg-emerald-50 text-brand" : "bg-slate-100 text-slate-500"}`}>{store.published ? "Publicada" : "Oculta"}</span>
+            <form action={grantManualPro}>
+              <input type="hidden" name="profile_id" value={store.owner_id} />
+              <input type="hidden" name="days" value="30" />
+              <button className="h-9 rounded-xl bg-emerald-50 px-3 text-xs font-black text-brand hover:bg-emerald-100">{store.owner?.plan === "pro" ? "Renovar 30d" : "Liberar PRO"}</button>
+            </form>
           </div>) : <div className="grid min-h-40 place-items-center text-center text-slate-400">
             <div>
               <Store className="mx-auto mb-3" />

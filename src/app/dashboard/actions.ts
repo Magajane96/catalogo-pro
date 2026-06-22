@@ -233,6 +233,17 @@ export async function updateOrderStatus(formData: FormData) {
   revalidatePath("/dashboard/produtos");
 }
 
+export async function grantManualPro(formData: FormData) {
+  const supabase = await createClient(); if (!supabase) return;
+  const profileId = String(formData.get("profile_id") || "");
+  const days = Number(formData.get("days") || 30);
+  if (!profileId) throw new Error("Usuario nao informado.");
+  const { error } = await supabase.rpc("admin_grant_manual_pro", { p_profile_id: profileId, p_days: days });
+  if (error) throw new Error(error.message);
+  revalidatePath("/dashboard/admin");
+  revalidatePath("/dashboard/planos");
+}
+
 export async function deleteProduct(formData: FormData) {
   const supabase = await createClient(); if (!supabase) return;
   await supabase.from("products").delete().eq("id", String(formData.get("id")));
