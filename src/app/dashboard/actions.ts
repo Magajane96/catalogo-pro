@@ -2,7 +2,12 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
+
+const uuidSchema = z.uuid();
+const orderStatusSchema = z.enum(["new", "in_progress", "picking", "finished", "delivered", "cancelled"]);
+const manualProDaysSchema = z.coerce.number().int().min(1).max(365);
 
 export async function logout() {
   const supabase = await createClient(); await supabase?.auth.signOut(); redirect("/login");
@@ -168,7 +173,7 @@ async function uploadStoreAsset(supabase: NonNullable<Awaited<ReturnType<typeof 
 
 export async function deleteProductImage(formData: FormData) {
   const supabase = await createClient(); if (!supabase) return;
-  const id = String(formData.get("id"));
+  const id = readRequiredUuid(formData, "id", "Imagem");
   const { data: image } = await supabase.from("product_images").select("storage_path,product_id,is_primary").eq("id", id).single(); if (!image) return;
   if (image.storage_path) await supabase.storage.from("product-images").remove([image.storage_path]); await supabase.from("product_images").delete().eq("id", id);
   const productId = image.product_id;
@@ -181,17 +186,18 @@ export async function deleteProductImage(formData: FormData) {
 
 export async function updateProductImages(formData: FormData) {
   const supabase = await createClient(); if (!supabase) return;
-  const productId = String(formData.get("product_id"));
-  const primaryId = String(formData.get("primary_image_id") || "");
+  const productId = readRequiredUuid(formData, "product_id", "Produto");
+  const primaryId = readOptionalUuid(formData, "primary_image_id");
   const imageIds = String(formData.get("image_ids") || "").split(",").map(id => id.trim()).filter(Boolean);
-  if (!productId || !imageIds.length) return;
+  const validImageIds = imageIds.filter(id => uuidSchema.safeParse(id).success);
+  if (!validImageIds.length) return;
 
   await supabase.from("product_images").update({ is_primary: false }).eq("product_id", productId);
-  for (let index = 0; index < imageIds.length; index++) {
+  for (let index = 0; index < validImageIds.length; index++) {
     await supabase.from("product_images").update({
       position: index,
-      is_primary: imageIds[index] === primaryId || (!primaryId && index === 0),
-    }).eq("id", imageIds[index]).eq("product_id", productId);
+      is_primary: validImageIds[index] === primaryId || (!primaryId && index === 0),
+    }).eq("id", validImageIds[index]).eq("product_id", productId);
   }
   revalidatePath(`/dashboard/produtos/${productId}/editar`);
   revalidatePath("/dashboard/produtos");
@@ -200,19 +206,21 @@ export async function updateProductImages(formData: FormData) {
 export async function createCategory(formData: FormData) {
   const supabase = await createClient(); if (!supabase) throw new Error("Configure o Supabase primeiro.");
   const { data: store } = await supabase.from("stores").select("id").single(); if (!store) throw new Error("Loja nao encontrada.");
-  const { error } = await supabase.from("categories").insert({ store_id: store.id, name: String(formData.get("name")), icon: String(formData.get("icon") || "Tag"), color: String(formData.get("color") || "#16a263") });
+  const category = readCategoryPayload(formData);
+  const { error } = await supabase.from("categories").insert({ store_id: store.id, ...category });
   if (error) throw new Error(error.message); await revalidateCategoryPaths(supabase);
 }
 
 export async function updateCategory(formData: FormData) {
   const supabase = await createClient(); if (!supabase) return;
-  await supabase.from("categories").update({ name: String(formData.get("name")), icon: String(formData.get("icon") || "Tag"), color: String(formData.get("color") || "#16a263"), active: formData.get("active") === "on" }).eq("id", String(formData.get("id")));
+  const id = readRequiredUuid(formData, "id", "Categoria");
+  await supabase.from("categories").update({ ...readCategoryPayload(formData), active: formData.get("active") === "on" }).eq("id", id);
   await revalidateCategoryPaths(supabase);
 }
 
 export async function deleteCategory(formData: FormData) {
   const supabase = await createClient(); if (!supabase) return;
-  await supabase.from("categories").delete().eq("id", String(formData.get("id"))); await revalidateCategoryPaths(supabase);
+  await supabase.from("categories").delete().eq("id", readRequiredUuid(formData, "id", "Categoria")); await revalidateCategoryPaths(supabase);
 }
 
 async function revalidateCategoryPaths(supabase: NonNullable<Awaited<ReturnType<typeof createClient>>>) {
@@ -224,8 +232,8 @@ async function revalidateCategoryPaths(supabase: NonNullable<Awaited<ReturnType<
 
 export async function updateOrderStatus(formData: FormData) {
   const supabase = await createClient(); if (!supabase) return;
-  const id = String(formData.get("id"));
-  const status = String(formData.get("status"));
+  const id = readRequiredUuid(formData, "id", "Pedido");
+  const status = readOrderStatus(formData);
   const { error } = await supabase.rpc("update_order_status", { p_order_id: id, p_status: status });
   if (error) throw new Error(error.message);
   revalidatePath("/dashboard/pedidos");
@@ -235,9 +243,8 @@ export async function updateOrderStatus(formData: FormData) {
 
 export async function grantManualPro(formData: FormData) {
   const supabase = await createClient(); if (!supabase) return;
-  const profileId = String(formData.get("profile_id") || "");
-  const days = Number(formData.get("days") || 30);
-  if (!profileId) throw new Error("Usuario nao informado.");
+  const profileId = readRequiredUuid(formData, "profile_id", "Usuario");
+  const days = readManualProDays(formData);
   const { error } = await supabase.rpc("admin_grant_manual_pro", { p_profile_id: profileId, p_days: days });
   if (error) throw new Error(error.message);
   revalidatePath("/dashboard/admin");
@@ -246,8 +253,7 @@ export async function grantManualPro(formData: FormData) {
 
 export async function revokeManualPro(formData: FormData) {
   const supabase = await createClient(); if (!supabase) return;
-  const profileId = String(formData.get("profile_id") || "");
-  if (!profileId) throw new Error("Usuario nao informado.");
+  const profileId = readRequiredUuid(formData, "profile_id", "Usuario");
   const { error } = await supabase.rpc("admin_revoke_manual_pro", { p_profile_id: profileId });
   if (error) throw new Error(error.message);
   revalidatePath("/dashboard/admin");
@@ -256,6 +262,43 @@ export async function revokeManualPro(formData: FormData) {
 
 export async function deleteProduct(formData: FormData) {
   const supabase = await createClient(); if (!supabase) return;
-  await supabase.from("products").delete().eq("id", String(formData.get("id")));
+  await supabase.from("products").delete().eq("id", readRequiredUuid(formData, "id", "Produto"));
   revalidatePath("/dashboard/produtos");
+}
+
+function readRequiredUuid(formData: FormData, field: string, label: string) {
+  const result = uuidSchema.safeParse(String(formData.get(field) || ""));
+  if (!result.success) throw new Error(`${label} invalido.`);
+  return result.data;
+}
+
+function readOptionalUuid(formData: FormData, field: string) {
+  const value = String(formData.get(field) || "").trim();
+  if (!value) return "";
+  const result = uuidSchema.safeParse(value);
+  return result.success ? result.data : "";
+}
+
+function readOrderStatus(formData: FormData) {
+  const result = orderStatusSchema.safeParse(String(formData.get("status") || ""));
+  if (!result.success) throw new Error("Status de pedido invalido.");
+  return result.data;
+}
+
+function readManualProDays(formData: FormData) {
+  const result = manualProDaysSchema.safeParse(formData.get("days") || 30);
+  if (!result.success) throw new Error("Informe um prazo entre 1 e 365 dias.");
+  return result.data;
+}
+
+function readCategoryPayload(formData: FormData) {
+  const name = String(formData.get("name") || "").normalize("NFKC").trim().slice(0, 80);
+  const icon = String(formData.get("icon") || "Tag").normalize("NFKC").trim().slice(0, 40) || "Tag";
+  const color = String(formData.get("color") || "#16a263").trim();
+  if (name.length < 2) throw new Error("Informe um nome de categoria valido.");
+  return {
+    name,
+    icon,
+    color: /^#[0-9a-fA-F]{6}$/.test(color) ? color : "#16a263",
+  };
 }
