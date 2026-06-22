@@ -1,5 +1,6 @@
 import { CheckCircle2, Clock, Hash, Mail, MessageCircle, PackageCheck, Search, ShoppingBag } from "lucide-react";
 import { updateOrderStatus } from "@/app/dashboard/actions";
+import { sanitizeDashboardSearchTerm } from "@/lib/search";
 import { createClient } from "@/lib/supabase/server";
 import { formatCurrency } from "@/lib/utils";
 
@@ -15,7 +16,7 @@ const statuses = [
 export default async function OrdersPage({ searchParams }: { searchParams: Promise<{ status?: string; q?: string }> }) {
   const filters = await searchParams;
   const selectedStatus = statuses.some(status => status.value === filters.status) ? filters.status : "all";
-  const search = String(filters.q || "").trim();
+  const search = sanitizeDashboardSearchTerm(filters.q);
   const supabase = await createClient();
   let query = supabase
     ?.from("orders")
@@ -23,8 +24,8 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
     .order("created_at", { ascending: false });
   if (query && selectedStatus !== "all") query = query.eq("status", selectedStatus);
   if (query && search) {
-    const orderNumber = Number(search);
-    const searchFilter = Number.isInteger(orderNumber) && orderNumber > 0
+    const orderNumber = /^\d{1,9}$/.test(search) ? Number(search) : 0;
+    const searchFilter = orderNumber > 0
       ? `customer_name.ilike.%${search}%,customer_phone.ilike.%${search}%,order_number.eq.${orderNumber}`
       : `customer_name.ilike.%${search}%,customer_phone.ilike.%${search}%`;
     query = query.or(searchFilter);

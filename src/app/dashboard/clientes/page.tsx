@@ -1,4 +1,5 @@
 import { Mail, MessageCircle, Phone, Search, Users } from "lucide-react";
+import { sanitizeDashboardSearchTerm } from "@/lib/search";
 import { createClient } from "@/lib/supabase/server";
 import { formatCurrency } from "@/lib/utils";
 
@@ -37,7 +38,7 @@ const segments = [
 
 export default async function CustomersPage({ searchParams }: { searchParams: Promise<{ q?: string; sort?: string; segment?: string }> }) {
   const filters = await searchParams;
-  const search = String(filters.q || "").trim();
+  const search = sanitizeDashboardSearchTerm(filters.q);
   const sort = filters.sort === "spent" || filters.sort === "orders" ? filters.sort : "recent";
   const segment = segments.some(item => item.value === filters.segment) ? String(filters.segment) : "all";
   const supabase = await createClient();

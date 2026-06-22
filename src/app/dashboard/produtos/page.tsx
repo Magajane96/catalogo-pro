@@ -3,6 +3,7 @@ import Image from "next/image";
 import { AlertTriangle, Edit3, ImageIcon, Lock, Package, Plus, Search, Sparkles, Trash2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { deleteProduct } from "@/app/dashboard/actions";
+import { sanitizeDashboardSearchTerm } from "@/lib/search";
 import { formatCurrency } from "@/lib/utils";
 
 type ProductRow = {
@@ -27,7 +28,7 @@ const stockFilters = [
 
 export default async function ProductsPage({ searchParams }: { searchParams: Promise<{ q?: string; filter?: string }> }) {
   const filters = await searchParams;
-  const search = String(filters.q || "").trim();
+  const search = sanitizeDashboardSearchTerm(filters.q);
   const selectedFilter = stockFilters.some(filter => filter.value === filters.filter) ? filters.filter : "all";
   const supabase = await createClient();
   const [{ data: profile }, { count: totalProducts }] = supabase ? await Promise.all([

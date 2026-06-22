@@ -1,5 +1,6 @@
 import { FolderOpen, Plus, Search, Tag, Trash2 } from "lucide-react";
 import { createCategory, deleteCategory, updateCategory } from "@/app/dashboard/actions";
+import { sanitizeDashboardSearchTerm } from "@/lib/search";
 import { createClient } from "@/lib/supabase/server";
 
 const icons = ["Tag", "Shirt", "Gem", "CakeSlice", "Sparkles", "Baby", "Palette", "Package"];
@@ -20,7 +21,7 @@ type Category = {
 
 export default async function CategoriesPage({ searchParams }: { searchParams: Promise<{ q?: string; filter?: string }> }) {
   const params = await searchParams;
-  const search = String(params.q || "").trim();
+  const search = sanitizeDashboardSearchTerm(params.q);
   const selectedFilter = filters.some(filter => filter.value === params.filter) ? params.filter : "all";
   const supabase = await createClient();
   let query = supabase
