@@ -35,6 +35,7 @@ O projeto foi pensado para pequenos empreendedores criarem uma loja independente
    - `202606150012_order_variant_snapshot.sql`
    - `202606150013_security_hardening.sql`
    - `202606150014_admin_manual_pro.sql`
+   - `202606150015_admin_revoke_manual_pro.sql`
 5. No Supabase Auth, adicione estas URLs permitidas:
    - `http://localhost:3000/auth/callback`
    - `http://localhost:3000/auth/callback?next=/auth/redefinir-senha`
@@ -139,7 +140,7 @@ Status considerados PRO automaticamente:
 
 Quando uma assinatura PRO ativa e inserida, atualizada ou removida, o banco sincroniza `profiles.plan` para `pro` ou `free`. A integracao com Stripe, Mercado Pago ou outro provedor deve escrever nessa tabela usando ambiente seguro de servidor ou webhook com service role.
 
-Admins tambem podem liberar ou renovar PRO manualmente por 30 dias pelo painel global. A acao usa a funcao segura `admin_grant_manual_pro`, que valida `role = 'admin'` antes de criar ou renovar uma assinatura manual.
+Admins tambem podem liberar, renovar ou revogar PRO manualmente pelo painel global. As acoes usam as funcoes seguras `admin_grant_manual_pro` e `admin_revoke_manual_pro`, que validam `role = 'admin'` antes de alterar uma assinatura manual.
 
 ## Checklist antes de vender
 

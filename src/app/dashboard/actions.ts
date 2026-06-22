@@ -244,6 +244,16 @@ export async function grantManualPro(formData: FormData) {
   revalidatePath("/dashboard/planos");
 }
 
+export async function revokeManualPro(formData: FormData) {
+  const supabase = await createClient(); if (!supabase) return;
+  const profileId = String(formData.get("profile_id") || "");
+  if (!profileId) throw new Error("Usuario nao informado.");
+  const { error } = await supabase.rpc("admin_revoke_manual_pro", { p_profile_id: profileId });
+  if (error) throw new Error(error.message);
+  revalidatePath("/dashboard/admin");
+  revalidatePath("/dashboard/planos");
+}
+
 export async function deleteProduct(formData: FormData) {
   const supabase = await createClient(); if (!supabase) return;
   await supabase.from("products").delete().eq("id", String(formData.get("id")));
