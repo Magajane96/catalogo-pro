@@ -63,10 +63,9 @@ export async function createProduct(formData: FormData) {
   const supabase = await createClient(); if (!supabase) throw new Error("Configure o Supabase primeiro.");
   const { data: store } = await supabase.from("stores").select("id").single();
   if (!store) throw new Error("Crie sua loja antes de cadastrar produtos.");
-  const price = Number(String(formData.get("price")).replace(",", "."));
-  const name = String(formData.get("name"));
-  const slug = name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") + "-" + Date.now().toString(36);
-  const { data: product, error } = await supabase.from("products").insert({ store_id: store.id, category_id: formData.get("category_id") || null, name, slug, description: String(formData.get("description") || ""), price, promotional_price: formData.get("promotional_price") ? Number(String(formData.get("promotional_price")).replace(",", ".")) : null, stock: Number(formData.get("stock") || 0), sku: String(formData.get("sku") || ""), internal_code: String(formData.get("internal_code") || ""), weight: formData.get("weight") ? Number(String(formData.get("weight")).replace(",", ".")) : null, active: formData.get("active") === "on" }).select("id").single();
+  const payload = readProductPayload(formData);
+  const slug = buildProductSlug(payload.name);
+  const { data: product, error } = await supabase.from("products").insert({ store_id: store.id, slug, ...payload }).select("id").single();
   if (error) throw new Error(error.message);
   await syncProductOptions(supabase, product.id, formData);
   await syncProductVariants(supabase, product.id, formData);
@@ -76,8 +75,8 @@ export async function createProduct(formData: FormData) {
 
 export async function updateProduct(formData: FormData) {
   const supabase = await createClient(); if (!supabase) throw new Error("Configure o Supabase primeiro.");
-  const id = String(formData.get("id"));
-  const { error } = await supabase.from("products").update({ category_id: formData.get("category_id") || null, name: String(formData.get("name")), description: String(formData.get("description") || ""), price: Number(String(formData.get("price")).replace(",", ".")), promotional_price: formData.get("promotional_price") ? Number(String(formData.get("promotional_price")).replace(",", ".")) : null, stock: Number(formData.get("stock") || 0), sku: String(formData.get("sku") || ""), internal_code: String(formData.get("internal_code") || ""), weight: formData.get("weight") ? Number(String(formData.get("weight")).replace(",", ".")) : null, active: formData.get("active") === "on", updated_at: new Date().toISOString() }).eq("id", id);
+  const id = readRequiredUuid(formData, "id", "Produto");
+  const { error } = await supabase.from("products").update({ ...readProductPayload(formData), updated_at: new Date().toISOString() }).eq("id", id);
   if (error) throw new Error(error.message);
   await syncProductOptions(supabase, id, formData);
   await syncProductVariants(supabase, id, formData);
@@ -301,4 +300,51 @@ function readCategoryPayload(formData: FormData) {
     icon,
     color: /^#[0-9a-fA-F]{6}$/.test(color) ? color : "#16a263",
   };
+}
+
+function readProductPayload(formData: FormData) {
+  const price = readMoney(formData, "price", "Preco");
+  const promotionalPrice = readOptionalMoney(formData, "promotional_price", "Preco promocional");
+  if (promotionalPrice !== null && promotionalPrice > price) throw new Error("O preco promocional nao pode ser maior que o preco.");
+  return {
+    category_id: readOptionalUuid(formData, "category_id") || null,
+    name: readText(formData, "name", 3, 140, "Nome do produto"),
+    description: readText(formData, "description", 0, 2000, "Descricao"),
+    price,
+    promotional_price: promotionalPrice,
+    stock: readNonNegativeInt(formData, "stock", "Estoque"),
+    sku: readText(formData, "sku", 0, 80, "SKU"),
+    internal_code: readText(formData, "internal_code", 0, 80, "Codigo interno"),
+    weight: readOptionalMoney(formData, "weight", "Peso"),
+    active: formData.get("active") === "on",
+  };
+}
+
+function readText(formData: FormData, field: string, min: number, max: number, label: string) {
+  const value = String(formData.get(field) || "").normalize("NFKC").trim().slice(0, max);
+  if (value.length < min) throw new Error(`${label} invalido.`);
+  return value;
+}
+
+function readMoney(formData: FormData, field: string, label: string) {
+  const value = Number(String(formData.get(field) || "").replace(",", "."));
+  if (!Number.isFinite(value) || value < 0) throw new Error(`${label} invalido.`);
+  return Math.round(value * 100) / 100;
+}
+
+function readOptionalMoney(formData: FormData, field: string, label: string) {
+  const raw = String(formData.get(field) || "").trim();
+  if (!raw) return null;
+  return readMoney(formData, field, label);
+}
+
+function readNonNegativeInt(formData: FormData, field: string, label: string) {
+  const value = Number(formData.get(field) || 0);
+  if (!Number.isInteger(value) || value < 0) throw new Error(`${label} invalido.`);
+  return value;
+}
+
+function buildProductSlug(name: string) {
+  const base = name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+  return `${base || "produto"}-${Date.now().toString(36)}`;
 }
